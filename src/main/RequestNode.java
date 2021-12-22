@@ -1,6 +1,8 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import main.exceptions.IllegalRequestException;
 import org.jetbrains.annotations.NotNull;
@@ -10,10 +12,11 @@ public class RequestNode {
   private Team requestee;
   private String details;
   private RequestNode source;
-  private ArrayList<RequestNode> branches = new ArrayList<>();
+  private List<RequestNode> branches = new LinkedList<>();
 
-  public RequestNode(Team requester, Team requestee, String details, RequestNode source,
-      ArrayList<RequestNode> branches) throws IllegalRequestException {
+  /* RequestNode constructor is package-private. Please use builder instead. */
+  RequestNode(Team requester, Team requestee, String details, RequestNode source,
+      LinkedList<RequestNode> branches) throws IllegalRequestException {
 
     this.requester = requester;
     this.requestee = requestee;
@@ -54,7 +57,7 @@ public class RequestNode {
     return source;
   }
 
-  public ArrayList<RequestNode> getBranches() {
+  public List<RequestNode> getBranches() {
     return branches;
   }
 
@@ -73,9 +76,8 @@ public class RequestNode {
   public boolean removeRequest(){
     if (!isRoot()){
       source.removeBranch(this);
-      //TODO: remove branch from main structure
     }else{
-      //TODO: remove root from main structure
+      RequestGraph.removeRoot(this);
     }
 
     for (RequestNode branch:branches){
@@ -91,18 +93,34 @@ public class RequestNode {
     requestee = newRequestee;
   }
 
+  /*
+  Sets the source of this Request, and updates this source to
+  have this as a branch. If there is a mismatch with the source requestee
+  and this node's requester, then throw an IllegalRequestException. If there
+  was a previous source then unlink that.
+  */
   public void setSource(RequestNode newSource) throws IllegalRequestException {
     if (newSource != null) {
+      if (source != null){
+        source.removeBranch(this);
+      }
       if (newSource.getRequestee() == requester) {
         this.source = newSource;
+        newSource.addBranch(this);
       } else {
         throw new IllegalRequestException(
             "New request tried to solve for a request not directed to the team.");
       }
     }
   }
-  public void addBranch(RequestNode newBranch){
-    branches.add(newBranch);
+  public void addBranch(@NotNull RequestNode newBranch) throws IllegalRequestException {
+    if (newBranch.getRequester() == requestee){
+      branches.add(newBranch);
+    } else{
+      throw new IllegalRequestException(
+          "Branch could not be added as source requestee is not the branch requester. "
+      );
+    }
   }
   public void removeBranch(RequestNode newBranch){
     branches.remove(newBranch);
@@ -111,11 +129,10 @@ public class RequestNode {
   @Override
   public String toString() {
     if (isRoot()){
-      return "Root Request #" + hashCode() + ":"
+      return "Root Request #" + hashCode() + ": " + details
           + "\n\tWaiting on: " + branches;
     }else{
-      return "Request #" + hashCode() + ":"
-          + "\n\tResolving: " + source
+      return "Branch Request #" + hashCode() + ": " + details
           + "\n\tWaiting on: " + branches;
     }
   }
@@ -138,12 +155,4 @@ public class RequestNode {
   public int hashCode() {
     return Objects.hash(requester, source, branches);
   }
-}
-
-class RequestBuilder {
-
-  public static RequestBuilder ANewRequest(){
-    return new RequestBuilder();
-  }
-
 }
