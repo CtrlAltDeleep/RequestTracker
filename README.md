@@ -2,8 +2,8 @@
 _**Inter-Team Request manager for KSP**_
 
 
-###**RequestNode:**
-######_(Dev use only - please do not remove builder encapsulation)_
+### **RequestNode:**
+###### _(Dev use only - please do not remove builder encapsulation)_
 Every request is between two teams, and solves exactly one problem.
 The request creator is the requester, and the team they want info from is the requestee.
 If a team want to create a new request it is a root request, and so the source should be null.
@@ -19,7 +19,7 @@ This structure imposes some construction rules that should be maintained in all 
 3. Only tip requests (i.e. ones with no branches) can be removed/solved. If a non-tip request is marked as solved, its branches are first deleted, then it is marked as solved.
 
 
-###**Higher Level Behaviour:**
+### **Higher Level Behaviour:**
 Should email team leads when changes to request are made, or branch request are solved.
 Should log all historical requests in a local file.
 Should maintain a graph structure consisting of all root nodes.
