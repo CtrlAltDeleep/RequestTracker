@@ -115,7 +115,7 @@ public class RequestNodeTest {
   public void ValidSourceChangeCorrectlyMergesBranchesAndUpstreamBranches() {
     NewRequestInitializationTest();
     RequestNode anotherRootRequest = null;
-    RequestNode anotherBranchRequest = null;
+    RequestNode anotherBranchRequest;
 
     try {
       anotherRootRequest = RequestBuilder.ANewRequest(Team.SPONSORSHIP, Team.AVIONICS)
