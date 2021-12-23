@@ -77,7 +77,7 @@ public class RequestNode {
   Removes a request node from the dependency graph.
   If the node is not a tip, then all branches are deleted.
   */
-  public boolean removeRequest(){
+  public void removeRequest(){
     if (!isRoot()){
       source.removeBranch(this);
     }else{
@@ -90,7 +90,6 @@ public class RequestNode {
 
     //TODO: send email to this requester and the source requester saying this request is solved.
     //      maybe save response in log.
-    return true;
   }
 
   private void setRequestee(Team newRequestee) {
@@ -112,20 +111,51 @@ public class RequestNode {
         this.source = newSource;
         newSource.addBranch(this);
       } else {
+        if (source != null){ //revert changes
+          source.addBranch(this);
+        }
         throw new IllegalRequestException(
             "New request tried to solve for a request not directed to the team.");
       }
+    }else{ // we want to make this request a root
+      if (source != null){
+        source.removeBranch(this);
+      }
+      this.source = null; // TODO: somehow we need to let the graph know we made a new root here...
     }
   }
+
+  /*
+  Force sets source. DO NOT CALL without first checking newSource.requestee == this.requester
+  Used by addBranch to prevent cycles
+  */
+  private void hardSetSource(RequestNode newSource){
+    source = newSource;
+  }
+
+  /*
+  Adds the Request as a branch, and updates the Requests old source by
+  removing it if the Request is not a root. If there is a mismatch with the
+  new branches requester and this node's requestee, then throw an IllegalRequestException.
+  Does not use setSource on newBranch to prevent function call cycle.
+  */
   public void addBranch(@NotNull RequestNode newBranch) throws IllegalRequestException {
     if (newBranch.getRequester() == requestee){
-      branches.add(newBranch);
+      if (newBranch.isRoot()){
+        branches.add(newBranch); //TODO: we need to let graph know we lost a root, then we can extract common parts of if statement
+        newBranch.hardSetSource(this);
+      }else{
+        newBranch.getSource().removeBranch(newBranch);
+        branches.add(newBranch);
+        newBranch.hardSetSource(this);
+      }
     } else{
       throw new IllegalRequestException(
-          "Branch could not be added as source requestee is not the branch requester. "
+          "Branch could not be added as source requestee is not the branch requester."
       );
     }
   }
+
   public void removeBranch(RequestNode newBranch){
     branches.remove(newBranch);
   }
@@ -138,21 +168,22 @@ public class RequestNode {
   public String toStringHelper(int tabLevel){
     String tab = new String(new char[tabLevel]).replace("\0", "\t");
 
-    StringBuilder detailsString = new StringBuilder(tab + "\tNothing");
+    StringBuilder detailsString = new StringBuilder();
     if (!isTip()){
-      detailsString = new StringBuilder();
+      detailsString = new StringBuilder("\n" + tab + "Waiting on: \n");
       for (RequestNode branch:branches){
         detailsString.append(branch.toStringHelper(tabLevel+1));
         detailsString.append("\n");
       }
+      detailsString.deleteCharAt(detailsString.length()-1);
     }
 
     if (isRoot()){
       return tab + "Root Request #" + id + " from " + requester + " to " + requestee +": " + details
-          + "\n" + tab + "Waiting on: \n" + detailsString;
+          + detailsString;
     }else{
       return tab + "Branch Request #" + id + " from " + requester + " to " + requestee +": " + details
-          + "\n" + tab + "Waiting on: \n" + detailsString;
+          + detailsString;
     }
   }
 
