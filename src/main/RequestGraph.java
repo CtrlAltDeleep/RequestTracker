@@ -13,18 +13,17 @@ public class RequestGraph {
     rootRequests = readGraphFromPath(path);
   }
 
-  public static ArrayList<RequestNode> readGraphFromPath(String path){
-    //TODO
+  public static ArrayList<RequestNode> readGraphFromPath(String path) {
+    // TODO
     return null;
   }
 
-  public static boolean saveGraphToPath(String path){
-    //TODO: traverse graph and save
+  public static boolean saveGraphToPath(String path) {
+    // TODO: traverse graph and save
     return false;
   }
 
-  public static void removeRoot(RequestNode request){
+  public static void removeRoot(RequestNode request) {
     rootRequests.remove(request);
   }
-
 }

@@ -1,6 +1,5 @@
 package test;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -10,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import main.RequestBuilder;
 import main.RequestNode;
+import main.exceptions.IllegalRequestException;
 import main.utilities.IDGenerator;
 import main.utilities.Team;
-import main.exceptions.IllegalRequestException;
 import org.junit.jupiter.api.Test;
 
 public class RequestNodeTest {
@@ -130,6 +129,8 @@ public class RequestNodeTest {
       assertEquals(1,anotherRootRequest.getBranches().size());
       newBranchRequest.setSource(anotherRootRequest);
       assertEquals(anotherRootRequest,newBranchRequest.getSource());
+      assertEquals(anotherRootRequest,anotherBranchRequest.getSource());
+
     } catch (IllegalRequestException e) {
       fail(e);
     }

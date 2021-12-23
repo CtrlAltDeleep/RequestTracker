@@ -9,7 +9,7 @@ import main.utilities.Team;
 import org.jetbrains.annotations.NotNull;
 
 public class RequestNode {
-  private Team requester;
+  private final Team requester;
   private Team requestee;
   private String details;
   private RequestNode source;
@@ -17,8 +17,13 @@ public class RequestNode {
   private final int id;
 
   /* RequestNode constructor is package-private. Please use builder instead. */
-  RequestNode(Team requester, Team requestee, String details, RequestNode source,
-      LinkedList<RequestNode> branches) throws IllegalRequestException {
+  RequestNode(
+      Team requester,
+      Team requestee,
+      String details,
+      RequestNode source,
+      LinkedList<RequestNode> branches)
+      throws IllegalRequestException {
 
     this.requester = requester;
     this.requestee = requestee;
@@ -27,14 +32,13 @@ public class RequestNode {
 
     setSource(source);
 
-    if (branches != null){
-      if (branches.stream().allMatch(x -> (x.requester == this.requestee))){
+    if (branches != null) {
+      if (branches.stream().allMatch(x -> (x.requester == this.requestee))) {
         this.branches = branches;
 
-      }else{
+      } else {
         throw new IllegalRequestException(
-            "New request was generated with branch requests not made by requestee team"
-        );
+            "New request was generated with branch requests not made by requestee team");
       }
     }
 
@@ -77,18 +81,18 @@ public class RequestNode {
   Removes a request node from the dependency graph.
   If the node is not a tip, then all branches are deleted.
   */
-  public void removeRequest(){
-    if (!isRoot()){
+  public void removeRequest() {
+    if (!isRoot()) {
       source.removeBranch(this);
-    }else{
+    } else {
       RequestGraph.removeRoot(this);
     }
 
-    for (RequestNode branch:branches){
+    for (RequestNode branch : branches) {
       branch.removeRequest();
     }
 
-    //TODO: send email to this requester and the source requester saying this request is solved.
+    // TODO: send email to this requester and the source requester saying this request is solved.
     //      maybe save response in log.
   }
 
@@ -104,21 +108,21 @@ public class RequestNode {
   */
   public void setSource(RequestNode newSource) throws IllegalRequestException {
     if (newSource != null) {
-      if (source != null){
+      if (source != null) {
         source.removeBranch(this);
       }
       if (newSource.getRequestee() == requester) {
         this.source = newSource;
         newSource.addBranch(this);
       } else {
-        if (source != null){ //revert changes
+        if (source != null) { // revert changes
           source.addBranch(this);
         }
         throw new IllegalRequestException(
             "New request tried to solve for a request not directed to the team.");
       }
-    }else{ // we want to make this request a root
-      if (source != null){
+    } else { // we want to make this request a root
+      if (source != null) {
         source.removeBranch(this);
       }
       this.source = null; // TODO: somehow we need to let the graph know we made a new root here...
@@ -129,7 +133,7 @@ public class RequestNode {
   Force sets source. DO NOT CALL without first checking newSource.requestee == this.requester
   Used by addBranch to prevent cycles
   */
-  private void hardSetSource(RequestNode newSource){
+  private void hardSetSource(RequestNode newSource) {
     source = newSource;
   }
 
@@ -140,50 +144,51 @@ public class RequestNode {
   Does not use setSource on newBranch to prevent function call cycle.
   */
   public void addBranch(@NotNull RequestNode newBranch) throws IllegalRequestException {
-    if (newBranch.getRequester() == requestee){
-      if (newBranch.isRoot()){
-        branches.add(newBranch); //TODO: we need to let graph know we lost a root, then we can extract common parts of if statement
+    if (newBranch.getRequester() == requestee) {
+      if (newBranch.isRoot()) {
+        branches.add(newBranch);
+        // TODO: we need to let graph know we lost a root, then we can extract common parts of if
+        //        statement
         newBranch.hardSetSource(this);
-      }else{
+      } else {
         newBranch.getSource().removeBranch(newBranch);
         branches.add(newBranch);
         newBranch.hardSetSource(this);
       }
-    } else{
+    } else {
       throw new IllegalRequestException(
-          "Branch could not be added as source requestee is not the branch requester."
-      );
+          "Branch could not be added as source requestee is not the branch requester.");
     }
   }
 
-  public void removeBranch(RequestNode newBranch){
+  public void removeBranch(RequestNode newBranch) {
     branches.remove(newBranch);
   }
 
   @Override
   public String toString() {
-   return toStringHelper(0);
+    return toStringHelper(0);
   }
 
-  public String toStringHelper(int tabLevel){
+  public String toStringHelper(int tabLevel) {
     String tab = new String(new char[tabLevel]).replace("\0", "\t");
 
     StringBuilder detailsString = new StringBuilder();
-    if (!isTip()){
+    if (!isTip()) {
       detailsString = new StringBuilder("\n" + tab + "Waiting on: \n");
-      for (RequestNode branch:branches){
-        detailsString.append(branch.toStringHelper(tabLevel+1));
+      for (RequestNode branch : branches) {
+        detailsString.append(branch.toStringHelper(tabLevel + 1));
         detailsString.append("\n");
       }
-      detailsString.deleteCharAt(detailsString.length()-1);
+      detailsString.deleteCharAt(detailsString.length() - 1);
     }
 
-    if (isRoot()){
-      return tab + "Root Request #" + id + " from " + requester + " to " + requestee +": " + details
-          + detailsString;
-    }else{
-      return tab + "Branch Request #" + id + " from " + requester + " to " + requestee +": " + details
-          + detailsString;
+    if (isRoot()) {
+      return tab + "Root Request #" + id + " from " + requester + " to " + requestee + ": "
+          + details + detailsString;
+    } else {
+      return tab + "Branch Request #" + id + " from " + requester + " to " + requestee + ": "
+          + details + detailsString;
     }
   }
 

@@ -7,11 +7,11 @@ import main.utilities.Team;
 
 public class RequestBuilder {
 
-  private Team requester;
-  private Team requestee;
+  private final Team requester;
+  private final Team requestee;
   private String details;
   private RequestNode source;
-  private LinkedList<RequestNode> branches = new LinkedList<>();
+  private final LinkedList<RequestNode> branches = new LinkedList<>();
 
   private RequestBuilder(Team from, Team to) {
     requester = from;
@@ -45,5 +45,4 @@ public class RequestBuilder {
   public RequestNode build() throws IllegalRequestException {
     return new RequestNode(requester, requestee, details, source, branches);
   }
-
 }
