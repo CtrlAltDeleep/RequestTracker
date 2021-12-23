@@ -1,10 +1,11 @@
 package main;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import main.exceptions.IllegalRequestException;
+import main.utilities.IDGenerator;
+import main.utilities.Team;
 import org.jetbrains.annotations.NotNull;
 
 public class RequestNode {
@@ -13,6 +14,7 @@ public class RequestNode {
   private String details;
   private RequestNode source;
   private List<RequestNode> branches = new LinkedList<>();
+  private final int id;
 
   /* RequestNode constructor is package-private. Please use builder instead. */
   RequestNode(Team requester, Team requestee, String details, RequestNode source,
@@ -35,6 +37,8 @@ public class RequestNode {
         );
       }
     }
+
+    id = IDGenerator.generateNewID();
   }
 
   public boolean isRoot() {
@@ -128,12 +132,27 @@ public class RequestNode {
 
   @Override
   public String toString() {
+   return toStringHelper(0);
+  }
+
+  public String toStringHelper(int tabLevel){
+    String tab = new String(new char[tabLevel]).replace("\0", "\t");
+
+    StringBuilder detailsString = new StringBuilder(tab + "\tNothing");
+    if (!isTip()){
+      detailsString = new StringBuilder();
+      for (RequestNode branch:branches){
+        detailsString.append(branch.toStringHelper(tabLevel+1));
+        detailsString.append("\n");
+      }
+    }
+
     if (isRoot()){
-      return "Root Request #" + hashCode() + ": " + details
-          + "\n\tWaiting on: " + branches;
+      return tab + "Root Request #" + id + " from " + requester + " to " + requestee +": " + details
+          + "\n" + tab + "Waiting on: \n" + detailsString;
     }else{
-      return "Branch Request #" + hashCode() + ": " + details
-          + "\n\tWaiting on: " + branches;
+      return tab + "Branch Request #" + id + " from " + requester + " to " + requestee +": " + details
+          + "\n" + tab + "Waiting on: \n" + detailsString;
     }
   }
 
@@ -151,8 +170,7 @@ public class RequestNode {
         .equals(requester, that.requester);
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(requester, source, branches);
+  public int getID() {
+    return id;
   }
 }

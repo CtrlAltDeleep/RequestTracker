@@ -3,6 +3,7 @@ package main;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import main.exceptions.IllegalRequestException;
+import main.utilities.Team;
 
 public class RequestBuilder {
 

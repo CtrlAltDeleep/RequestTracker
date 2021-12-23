@@ -6,25 +6,27 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import main.RequestBuilder;
 import main.RequestNode;
-import main.Team;
+import main.utilities.IDGenerator;
+import main.utilities.Team;
 import main.exceptions.IllegalRequestException;
 import org.junit.jupiter.api.Test;
 
 public class RequestNodeTest {
 
   RequestNode newRequest = null;
+  RequestNode newBranchRequest = null;
+  boolean success = IDGenerator.init(10);
 
   @Test
   public void NewRequestInitializationTest(){
     try {
-      newRequest = RequestBuilder.ANewRequest(Team.SYSTEMS,Team.AVIONICS).withQuery("How many CPUS you using?").build();
+      newRequest = RequestBuilder.ANewRequest(Team.SYSTEMS,Team.AVIONICS).withQuery("How many CPUS are you using?").build();
     } catch (IllegalRequestException e) {
       fail(e);
     }
 
-    RequestNode newBranchRequest = null;
     try {
-      newBranchRequest = RequestBuilder.ANewRequest(Team.AVIONICS,Team.STRUCTURES).withQuery("Whats the diameter of the inner tube where the CPUs sit?").toSolve(newRequest).build();
+      newBranchRequest = RequestBuilder.ANewRequest(Team.AVIONICS,Team.STRUCTURES).withQuery("What's the diameter of the inner tube where the CPUs sit?").toSolve(newRequest).build();
     } catch (IllegalRequestException e) {
       fail(e);
     }
@@ -32,7 +34,7 @@ public class RequestNodeTest {
     assertNull(newRequest.getSource());
     assertEquals(newRequest, newBranchRequest.getSource());
 
-    System.out.println(newRequest);
+    System.out.println(newBranchRequest);
 
   }
 
