@@ -34,7 +34,7 @@ public class RequestNodeTest {
     assertNull(newRequest.getSource());
     assertEquals(newRequest, newBranchRequest.getSource());
 
-    System.out.println(newBranchRequest);
+    System.out.println(newRequest);
 
   }
 

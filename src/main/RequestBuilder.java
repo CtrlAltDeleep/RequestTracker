@@ -14,6 +14,8 @@ public class RequestBuilder {
   private LinkedList<RequestNode> branches = new LinkedList<>();
 
   private RequestBuilder(Team from, Team to) {
+    requester = from;
+    requestee = to;
   }
 
   public static RequestBuilder ANewRequest(Team from, Team to) {
