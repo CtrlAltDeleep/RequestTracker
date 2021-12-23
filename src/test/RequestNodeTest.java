@@ -135,6 +135,7 @@ public class RequestNodeTest {
     }
     assertTrue(newRequest.isTip());
     System.out.println(anotherRootRequest);
+    System.out.println(newRequest);
     assertEquals(2,anotherRootRequest.getBranches().size());
   }
 

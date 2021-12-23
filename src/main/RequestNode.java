@@ -196,9 +196,7 @@ public class RequestNode {
       return false;
     }
     RequestNode that = (RequestNode) o;
-    return Objects.equals(source, that.source) && Objects
-        .equals(branches, that.branches) && Objects
-        .equals(requester, that.requester);
+    return Objects.equals(id, that.id) && Objects.equals(details, that.details);
   }
 
   public int getID() {
