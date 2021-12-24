@@ -1,20 +1,16 @@
-package test;
+package ksp;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
-import main.RequestBuilder;
-import main.RequestGraph;
-import main.RequestNode;
-import main.exceptions.IllegalRequestException;
-import main.utilities.IDGenerator;
-import main.utilities.Team;
-import org.junit.jupiter.api.Test;
+import ksp.exceptions.IllegalRequestException;
+import ksp.utilities.Team;
+import org.junit.Test;
 
 
 public class RequestNodeTest {
@@ -31,7 +27,7 @@ public class RequestNodeTest {
           .withQuery("How many CPUS are you using?")
           .build();
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
 
     try {
@@ -40,7 +36,7 @@ public class RequestNodeTest {
           .withQuery("What's the diameter of the inner tube where the CPUs sit?")
           .toSolve(newRequest).build();
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
     assertEquals(1, newRequest.getBranches().size());
     assertNull(newRequest.getSource());
@@ -89,7 +85,7 @@ public class RequestNodeTest {
           .toSolve(newBranchRequest)
           .build();
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
     assertFalse(newRequest.isTip());
     assertFalse(newBranchRequest.isTip());
@@ -109,7 +105,7 @@ public class RequestNodeTest {
           .withQuery("Is it worth pursuing a Boeing sponsorship?")
           .build();
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
 
     RequestNode finalAnotherRootRequest = anotherRootRequest;
@@ -142,7 +138,7 @@ public class RequestNodeTest {
       assertEquals(anotherRootRequest,anotherBranchRequest.getSource());
 
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
     assertTrue(newRequest.isTip());
     System.out.println(anotherRootRequest);
@@ -163,7 +159,7 @@ public class RequestNodeTest {
       assertTrue(anotherRootRequest.isRoot());
       anotherRootRequest.setSource(newRequest, requestGraph);
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
     assertFalse(anotherRootRequest.isRoot());
   }
@@ -177,7 +173,7 @@ public class RequestNodeTest {
     try {
       newBranchRequest.setSource(null, requestGraph);
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
     assertTrue(newRequest.isTip());
     assertTrue(newBranchRequest.isRoot());
@@ -193,7 +189,7 @@ public class RequestNodeTest {
           .withQuery("Is it worth pursuing a Boeing sponsorship?")
           .build();
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
 
     RequestNode finalBadBranchRequest = badBranchRequest;
@@ -221,7 +217,7 @@ public class RequestNodeTest {
       assertFalse(anotherBranchRequest.isRoot());
 
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
     assertEquals(2,newRequest.getBranches().size());
 
@@ -252,7 +248,7 @@ public class RequestNodeTest {
       assertEquals(newRequest,anotherBranchRequest.getSource());
 
     } catch (IllegalRequestException e) {
-      fail(e);
+      fail(e.getMessage());
     }
     assertEquals(2,newRequest.getBranches().size());
   }

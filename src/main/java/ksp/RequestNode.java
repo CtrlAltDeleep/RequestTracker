@@ -1,11 +1,11 @@
-package main;
+package ksp;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import main.exceptions.IllegalRequestException;
-import main.utilities.IDGenerator;
-import main.utilities.Team;
+import ksp.exceptions.IllegalRequestException;
+import ksp.utilities.IDGenerator;
+import ksp.utilities.Team;
 import org.jetbrains.annotations.NotNull;
 
 public class RequestNode {
@@ -173,7 +173,7 @@ public class RequestNode {
     return toStringHelper(0);
   }
 
-  public String toStringHelper(int tabLevel) {
+  private String toStringHelper(int tabLevel) {
     String tab = new String(new char[tabLevel]).replace("\0", "\t");
 
     StringBuilder detailsString = new StringBuilder();

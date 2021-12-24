@@ -1,4 +1,4 @@
-package main.utilities;
+package ksp.utilities;
 
 public enum Team {
   AVIONICS("Avionics", "ad2820@ic.ac.uk"),

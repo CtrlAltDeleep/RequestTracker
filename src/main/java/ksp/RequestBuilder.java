@@ -1,9 +1,9 @@
-package main;
+package ksp;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import main.exceptions.IllegalRequestException;
-import main.utilities.Team;
+import ksp.exceptions.IllegalRequestException;
+import ksp.utilities.Team;
 
 public class RequestBuilder {
 

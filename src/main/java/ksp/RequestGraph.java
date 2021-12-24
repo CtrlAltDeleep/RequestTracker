@@ -1,14 +1,13 @@
-package main;
+package ksp;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
-import main.utilities.IDGenerator;
-import main.utilities.RequestDirection;
-import main.utilities.Team;
-import org.jetbrains.annotations.Contract;
+import ksp.utilities.IDGenerator;
+import ksp.utilities.RequestDirection;
+import ksp.utilities.Team;
 
-public class RequestGraph { // State storing utility class - NEEDS FIXING
+public class RequestGraph {
   public static ArrayList<RequestNode> rootRequests;
 
   public RequestGraph(ArrayList<RequestNode> rootRequests) {
@@ -130,4 +129,12 @@ public class RequestGraph { // State storing utility class - NEEDS FIXING
     return currentMatches; // return currentMatches with upstream branch matches added
   }
 
+  @Override
+  public String toString() {
+     StringBuilder output = new StringBuilder();
+     for (RequestNode root :rootRequests){
+       output.append(root.toString()).append("\n");
+     }
+     return output.toString();
+  }
 }

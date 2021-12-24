@@ -1,4 +1,4 @@
-package main.utilities;
+package ksp.utilities;
 
 public enum RequestDirection {
   TO_US,

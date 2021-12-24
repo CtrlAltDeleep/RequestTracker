@@ -1,4 +1,4 @@
-package main.exceptions;
+package ksp.exceptions;
 
 public class IllegalRequestException extends Exception {
 
