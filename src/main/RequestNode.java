@@ -94,7 +94,8 @@ public class RequestNode {
     }
 
     // TODO: send email to this requester and the source requester saying this request is solved.
-    //      maybe save response in log.
+    //      maybe save response in log. needs to be here, not in graph as when branches
+    //      more around, we can drop a branch without going through the graph
   }
 
   private void setRequestee(Team newRequestee) {

@@ -1,7 +1,12 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import main.utilities.IDGenerator;
+import main.utilities.RequestDirection;
+import main.utilities.Team;
+import org.jetbrains.annotations.Contract;
 
 public class RequestGraph { // State storing utility class - NEEDS FIXING
   public static ArrayList<RequestNode> rootRequests;
@@ -26,11 +31,11 @@ public class RequestGraph { // State storing utility class - NEEDS FIXING
     return false;
   }
 
-  public void removeRoot(RequestNode request) {
+  protected void removeRoot(RequestNode request) {
     rootRequests.remove(request);
   }
 
-  public void addRoot(RequestNode request) {
+  protected void addRoot(RequestNode request) {
     rootRequests.add(request);
   }
 
@@ -41,4 +46,88 @@ public class RequestGraph { // State storing utility class - NEEDS FIXING
     //TODO saveDataToPath();
     return true;
   }
+
+  public boolean resolveRequest(RequestNode request){
+    request.removeRequest(this);
+    // TODO saveDataToPath();
+    return true;
+  }
+
+  public RequestNode findRequest(int id){
+    for (RequestNode root : rootRequests){
+      RequestNode output = findRequestIDSearch(root,id);
+      if (output != null){
+        return output;
+      }
+    }
+    return null;
+  }
+
+  public ArrayList<RequestNode> findRequests(Team team, RequestDirection direction){
+    Set<RequestNode> output = new HashSet<>();
+    if (direction == RequestDirection.FROM_US){
+      // find requests that this team made / are the requester for
+      for (RequestNode root : rootRequests) {
+        output.addAll(findRequestsRequesterSearch(root,team,new HashSet<>()));
+      }
+    } else{
+      // find requests that want info from this team / are the requestee in
+      for (RequestNode root : rootRequests) {
+        output.addAll(findRequestsRequesteeSearch(root,team,new HashSet<>()));
+      }
+    }
+    return new ArrayList<>(output);
+  }
+
+  private RequestNode findRequestIDSearch(RequestNode requestToCheck, int id) {
+    if (requestToCheck.getID() == id){ // current request matches
+      return requestToCheck;
+    }else if (requestToCheck.isTip()){ // no more branches to search here
+      return null;
+    }else{
+      for (RequestNode branch:requestToCheck.getBranches()){ // search branches for id
+        if (findRequestIDSearch(requestToCheck,id) != null){
+          return branch;
+        }
+      }
+      return null; //id not found in branches
+    }
+  }
+
+  private Set<RequestNode> findRequestsRequesterSearch(
+      RequestNode requestToCheck,
+      Team team,
+      Set<RequestNode> currentMatches) {
+
+    if (requestToCheck.getRequester() == team){ // current request matches
+      currentMatches.add(requestToCheck);
+    }
+    if (requestToCheck.isTip()){ // no more branches to search here
+      return currentMatches;
+    }else{
+      for (RequestNode branch:requestToCheck.getBranches()){ // search branches
+        currentMatches.addAll(findRequestsRequesterSearch(requestToCheck,team,currentMatches));
+      }
+    }
+    return currentMatches; // return currentMatches with upstream branch matches added
+  }
+
+  private Set<RequestNode> findRequestsRequesteeSearch(
+      RequestNode requestToCheck,
+      Team team,
+      Set<RequestNode> currentMatches) {
+
+    if (requestToCheck.getRequestee() == team){ // current request matches
+      currentMatches.add(requestToCheck);
+    }
+    if (requestToCheck.isTip()){ // no more branches to search here
+      return currentMatches;
+    }else{
+      for (RequestNode branch:requestToCheck.getBranches()){ // search branches
+        currentMatches.addAll(findRequestsRequesteeSearch(requestToCheck,team,currentMatches));
+      }
+    }
+    return currentMatches; // return currentMatches with upstream branch matches added
+  }
+
 }
