@@ -125,7 +125,8 @@ public class RequestNode {
       if (source != null) {
         source.removeBranch(this);
       }
-      this.source = null; // TODO: somehow we need to let the graph know we made a new root here...
+      this.source = null;
+      RequestGraph.addRoot(this); // let the graph know we have a new root to track
     }
   }
 
@@ -147,8 +148,7 @@ public class RequestNode {
     if (newBranch.getRequester() == requestee) {
       if (newBranch.isRoot()) {
         branches.add(newBranch);
-        // TODO: we need to let graph know we lost a root, then we can extract common parts of if
-        //        statement
+        RequestGraph.removeRoot(newBranch); // let graph know we newBranch isn't a root anymore
         newBranch.hardSetSource(this);
       } else {
         newBranch.getSource().removeBranch(newBranch);
