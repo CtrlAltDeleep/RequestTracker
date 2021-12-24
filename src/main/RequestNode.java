@@ -22,7 +22,8 @@ public class RequestNode {
       Team requestee,
       String details,
       RequestNode source,
-      LinkedList<RequestNode> branches)
+      LinkedList<RequestNode> branches,
+      RequestGraph requestGraph)
       throws IllegalRequestException {
 
     this.requester = requester;
@@ -30,7 +31,7 @@ public class RequestNode {
 
     this.details = details;
 
-    setSource(source);
+    setSource(source, requestGraph);
 
     if (branches != null) {
       if (branches.stream().allMatch(x -> (x.requester == this.requestee))) {
@@ -81,15 +82,15 @@ public class RequestNode {
   Removes a request node from the dependency graph.
   If the node is not a tip, then all branches are deleted.
   */
-  public void removeRequest() {
+  public void removeRequest(RequestGraph requestGraph) {
     if (!isRoot()) {
       source.removeBranch(this);
     } else {
-      RequestGraph.removeRoot(this);
+      requestGraph.removeRoot(this);
     }
 
     for (RequestNode branch : branches) {
-      branch.removeRequest();
+      branch.removeRequest(requestGraph);
     }
 
     // TODO: send email to this requester and the source requester saying this request is solved.
@@ -106,17 +107,17 @@ public class RequestNode {
   and this node's requester, then throw an IllegalRequestException. If there
   was a previous source then unlink that.
   */
-  public void setSource(RequestNode newSource) throws IllegalRequestException {
+  public void setSource(RequestNode newSource, RequestGraph requestGraph) throws IllegalRequestException {
     if (newSource != null) {
       if (source != null) {
         source.removeBranch(this);
       }
       if (newSource.getRequestee() == requester) {
         this.source = newSource;
-        newSource.addBranch(this);
+        newSource.addBranch(this, requestGraph);
       } else {
         if (source != null) { // revert changes
-          source.addBranch(this);
+          source.addBranch(this, requestGraph);
         }
         throw new IllegalRequestException(
             "New request tried to solve for a request not directed to the team.");
@@ -126,7 +127,7 @@ public class RequestNode {
         source.removeBranch(this);
       }
       this.source = null;
-      RequestGraph.addRoot(this); // let the graph know we have a new root to track
+      requestGraph.addRoot(this); // let the graph know we have a new root to track
     }
   }
 
@@ -144,11 +145,12 @@ public class RequestNode {
   new branches requester and this node's requestee, then throw an IllegalRequestException.
   Does not use setSource on newBranch to prevent function call cycle.
   */
-  public void addBranch(@NotNull RequestNode newBranch) throws IllegalRequestException {
+  public void addBranch(@NotNull RequestNode newBranch, RequestGraph requestGraph)
+      throws IllegalRequestException {
     if (newBranch.getRequester() == requestee) {
       if (newBranch.isRoot()) {
         branches.add(newBranch);
-        RequestGraph.removeRoot(newBranch); // let graph know we newBranch isn't a root anymore
+        requestGraph.removeRoot(newBranch); // let graph know we newBranch isn't a root anymore
         newBranch.hardSetSource(this);
       } else {
         newBranch.getSource().removeBranch(newBranch);

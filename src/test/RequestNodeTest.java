@@ -21,12 +21,13 @@ public class RequestNodeTest {
 
   RequestNode newRequest = null;
   RequestNode newBranchRequest = null;
-  boolean success = RequestGraph.init(new ArrayList<>());
+  RequestGraph requestGraph = new RequestGraph(new ArrayList<>());
 
   @Test
   public void NewRequestInitializationTest(){
     try {
       newRequest = RequestBuilder.ANewRequest(Team.SYSTEMS,Team.AVIONICS)
+          .inGraph(requestGraph)
           .withQuery("How many CPUS are you using?")
           .build();
     } catch (IllegalRequestException e) {
@@ -35,6 +36,7 @@ public class RequestNodeTest {
 
     try {
       newBranchRequest = RequestBuilder.ANewRequest(Team.AVIONICS,Team.STRUCTURES)
+          .inGraph(requestGraph)
           .withQuery("What's the diameter of the inner tube where the CPUs sit?")
           .toSolve(newRequest).build();
     } catch (IllegalRequestException e) {
@@ -63,8 +65,9 @@ public class RequestNodeTest {
     assertThrows(
         IllegalRequestException.class,
         () -> RequestBuilder.ANewRequest(Team.STRUCTURES,Team.SPONSORSHIP)
+                            .inGraph(requestGraph)
                             .withQuery("This is unrelated. Why are you trying to add it here?")
-                             .toSolve(newRequest).build()
+                            .toSolve(newRequest).build()
     );
   }
 
@@ -72,7 +75,7 @@ public class RequestNodeTest {
   public void CanRemoveTipRequests(){
     NewRequestInitializationTest();
     assertFalse(newRequest.isTip());
-    newBranchRequest.removeRequest();
+    newBranchRequest.removeRequest(requestGraph);
     assertTrue(newRequest.isTip());
   }
 
@@ -81,6 +84,7 @@ public class RequestNodeTest {
     NewRequestInitializationTest();
     try {
       RequestNode newBranchBranchRequest = RequestBuilder.ANewRequest(Team.STRUCTURES, Team.SYSTEMS)
+          .inGraph(requestGraph)
           .withQuery("How fast are we expecting to go?")
           .toSolve(newBranchRequest)
           .build();
@@ -90,7 +94,7 @@ public class RequestNodeTest {
     assertFalse(newRequest.isTip());
     assertFalse(newBranchRequest.isTip());
 
-    newBranchRequest.removeRequest();
+    newBranchRequest.removeRequest(requestGraph);
     assertTrue(newRequest.isTip());
   }
 
@@ -101,6 +105,7 @@ public class RequestNodeTest {
     RequestNode anotherRootRequest = null;
     try {
       anotherRootRequest = RequestBuilder.ANewRequest(Team.SPONSORSHIP, Team.PROPULSION)
+          .inGraph(requestGraph)
           .withQuery("Is it worth pursuing a Boeing sponsorship?")
           .build();
     } catch (IllegalRequestException e) {
@@ -110,7 +115,7 @@ public class RequestNodeTest {
     RequestNode finalAnotherRootRequest = anotherRootRequest;
     assertThrows(
         IllegalRequestException.class,
-        () -> newBranchRequest.setSource(finalAnotherRootRequest)
+        () -> newBranchRequest.setSource(finalAnotherRootRequest,requestGraph)
     );
   }
 
@@ -122,15 +127,17 @@ public class RequestNodeTest {
 
     try {
       anotherRootRequest = RequestBuilder.ANewRequest(Team.SPONSORSHIP, Team.AVIONICS)
+          .inGraph(requestGraph)
           .withQuery("What company are you buying the CPU from?")
           .build();
       anotherBranchRequest = RequestBuilder.ANewRequest(Team.AVIONICS, Team.SYSTEMS)
+          .inGraph(requestGraph)
           .withQuery("How high are we going?")
           .toSolve(anotherRootRequest)
           .build();
 
       assertEquals(1,anotherRootRequest.getBranches().size());
-      newBranchRequest.setSource(anotherRootRequest);
+      newBranchRequest.setSource(anotherRootRequest,requestGraph);
       assertEquals(anotherRootRequest,newBranchRequest.getSource());
       assertEquals(anotherRootRequest,anotherBranchRequest.getSource());
 
@@ -150,10 +157,11 @@ public class RequestNodeTest {
 
     try {
       anotherRootRequest = RequestBuilder.ANewRequest(Team.AVIONICS, Team.SPONSORSHIP)
+          .inGraph(requestGraph)
           .withQuery("Do we have any carbon fibre sponsors?")
           .build();
       assertTrue(anotherRootRequest.isRoot());
-      anotherRootRequest.setSource(newRequest);
+      anotherRootRequest.setSource(newRequest, requestGraph);
     } catch (IllegalRequestException e) {
       fail(e);
     }
@@ -167,7 +175,7 @@ public class RequestNodeTest {
     assertFalse(newRequest.isTip());
     assertFalse(newBranchRequest.isRoot());
     try {
-      newBranchRequest.setSource(null);
+      newBranchRequest.setSource(null, requestGraph);
     } catch (IllegalRequestException e) {
       fail(e);
     }
@@ -181,6 +189,7 @@ public class RequestNodeTest {
     RequestNode badBranchRequest = null;
     try {
       badBranchRequest = RequestBuilder.ANewRequest(Team.SPONSORSHIP, Team.PROPULSION)
+          .inGraph(requestGraph)
           .withQuery("Is it worth pursuing a Boeing sponsorship?")
           .build();
     } catch (IllegalRequestException e) {
@@ -190,7 +199,7 @@ public class RequestNodeTest {
     RequestNode finalBadBranchRequest = badBranchRequest;
     assertThrows(
         IllegalRequestException.class,
-        () -> newBranchRequest.addBranch(finalBadBranchRequest)
+        () -> newBranchRequest.addBranch(finalBadBranchRequest, requestGraph)
     );
   }
 
@@ -200,13 +209,14 @@ public class RequestNodeTest {
     RequestNode anotherBranchRequest;
     try {
       anotherBranchRequest = RequestBuilder.ANewRequest(Team.AVIONICS, Team.SYSTEMS)
+          .inGraph(requestGraph)
           .withQuery("How high are we going - do our CPUs have to worry about temperature?")
           .build();
 
       assertEquals(1,newRequest.getBranches().size());
       assertTrue(anotherBranchRequest.isRoot());
 
-      newRequest.addBranch(anotherBranchRequest);
+      newRequest.addBranch(anotherBranchRequest, requestGraph);
 
       assertFalse(anotherBranchRequest.isRoot());
 
@@ -224,9 +234,11 @@ public class RequestNodeTest {
     RequestNode anotherBranchRequest;
     try {
       anotherRootRequest = RequestBuilder.ANewRequest(Team.SPONSORSHIP, Team.AVIONICS)
+          .inGraph(requestGraph)
           .withQuery("What company are you buying the CPU from?")
           .build();
       anotherBranchRequest = RequestBuilder.ANewRequest(Team.AVIONICS, Team.SYSTEMS)
+          .inGraph(requestGraph)
           .withQuery("How high are we going?")
           .toSolve(anotherRootRequest)
           .build();
@@ -234,7 +246,7 @@ public class RequestNodeTest {
       assertEquals(1,newRequest.getBranches().size());
       assertFalse(anotherRootRequest.isTip());
 
-      newRequest.addBranch(anotherBranchRequest);
+      newRequest.addBranch(anotherBranchRequest, requestGraph);
 
       assertTrue(anotherRootRequest.isTip());
       assertEquals(newRequest,anotherBranchRequest.getSource());

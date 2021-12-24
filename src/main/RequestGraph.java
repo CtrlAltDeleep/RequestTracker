@@ -6,35 +6,35 @@ import main.utilities.IDGenerator;
 public class RequestGraph { // State storing utility class - NEEDS FIXING
   public static ArrayList<RequestNode> rootRequests;
 
-  public static boolean init(ArrayList<RequestNode> rootRequests) {
+  public RequestGraph(ArrayList<RequestNode> rootRequests) {
     RequestGraph.rootRequests = rootRequests;
-    return IDGenerator.init(0);
+    IDGenerator.init(0);
   }
 
-  public static boolean init(String path) {
+  public RequestGraph(String path) {
     rootRequests = readDataFromPath(path);
-    return IDGenerator.init(0); //TODO: replace with int read from file
+    IDGenerator.init(0); //TODO: replace with int read from file
   }
 
-  public static ArrayList<RequestNode> readDataFromPath(String path) {
+  public ArrayList<RequestNode> readDataFromPath(String path) {
     // TODO: also set IDgen state
     return null;
   }
 
-  public static boolean saveDataToPath(String path) {
+  public boolean saveDataToPath(String path) {
     // TODO: traverse graph and save
     return false;
   }
 
-  public static void removeRoot(RequestNode request) {
+  public void removeRoot(RequestNode request) {
     rootRequests.remove(request);
   }
 
-  public static void addRoot(RequestNode request) {
+  public void addRoot(RequestNode request) {
     rootRequests.add(request);
   }
 
-  public static boolean addNewRequest(RequestNode newRequest) {
+  public boolean addNewRequest(RequestNode newRequest) {
     if (newRequest.isRoot()){
       rootRequests.add(newRequest);
     }

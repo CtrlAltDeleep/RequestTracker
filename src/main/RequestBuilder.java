@@ -12,6 +12,7 @@ public class RequestBuilder {
   private String details;
   private RequestNode source;
   private final LinkedList<RequestNode> branches = new LinkedList<>();
+  private RequestGraph requestGraph;
 
   private RequestBuilder(Team from, Team to) {
     requester = from;
@@ -24,6 +25,11 @@ public class RequestBuilder {
 
   public RequestBuilder withQuery(String details) {
     this.details = details;
+    return this;
+  }
+
+  public RequestBuilder inGraph(RequestGraph requestGraph) {
+    this.requestGraph = requestGraph;
     return this;
   }
 
@@ -43,6 +49,12 @@ public class RequestBuilder {
   }
 
   public RequestNode build() throws IllegalRequestException {
-    return new RequestNode(requester, requestee, details, source, branches);
+    if (details == null){
+      throw new IllegalRequestException("Cannot build a Request without a query");
+    }
+    if (requestGraph == null){
+      throw new IllegalRequestException("No graph specified to attach this Request node onto");
+    }
+    return new RequestNode(requester, requestee, details, source, branches, requestGraph);
   }
 }
