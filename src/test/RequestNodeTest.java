@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.ArrayList;
 import main.RequestBuilder;
+import main.RequestGraph;
 import main.RequestNode;
 import main.exceptions.IllegalRequestException;
 import main.utilities.IDGenerator;
@@ -19,7 +21,7 @@ public class RequestNodeTest {
 
   RequestNode newRequest = null;
   RequestNode newBranchRequest = null;
-  boolean success = IDGenerator.init(10);
+  boolean success = RequestGraph.init(new ArrayList<>());
 
   @Test
   public void NewRequestInitializationTest(){
@@ -48,9 +50,9 @@ public class RequestNodeTest {
     NewRequestInitializationTest();
     assertEquals(
         """
-            Root Request #11 from Systems to Avionics: How many CPUS are you using?
+            Root Request #1 from Systems to Avionics: How many CPUS are you using?
             Waiting on:\s
-            \tBranch Request #12 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?""",
+            \tBranch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?""",
         newRequest.toString());
   }
 

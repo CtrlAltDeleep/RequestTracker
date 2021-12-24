@@ -3,16 +3,17 @@ package main;
 import java.util.ArrayList;
 import main.utilities.IDGenerator;
 
-public class RequestGraph {
+public class RequestGraph { // State storing utility class - NEEDS FIXING
   public static ArrayList<RequestNode> rootRequests;
 
-  public RequestGraph(ArrayList<RequestNode> rootRequests) {
+  public static boolean init(ArrayList<RequestNode> rootRequests) {
     RequestGraph.rootRequests = rootRequests;
-    IDGenerator.init(0);
+    return IDGenerator.init(0);
   }
 
-  public RequestGraph(String path) {
+  public static boolean init(String path) {
     rootRequests = readDataFromPath(path);
+    return IDGenerator.init(0); //TODO: replace with int read from file
   }
 
   public static ArrayList<RequestNode> readDataFromPath(String path) {
@@ -40,6 +41,4 @@ public class RequestGraph {
     //TODO saveDataToPath();
     return true;
   }
-
-
 }
