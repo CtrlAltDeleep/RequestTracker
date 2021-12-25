@@ -91,7 +91,7 @@ public class RequestGraph {
       return null;
     }else{
       for (RequestNode branch:requestToCheck.getBranches()){ // search branches for id
-        if (findRequestIDSearch(requestToCheck,id) != null){
+        if (findRequestIDSearch(branch,id) != null){
           return branch;
         }
       }
@@ -111,7 +111,7 @@ public class RequestGraph {
       return currentMatches;
     }else{
       for (RequestNode branch:requestToCheck.getBranches()){ // search branches
-        currentMatches.addAll(findRequestsRequesterSearch(requestToCheck,team,currentMatches));
+        currentMatches.addAll(findRequestsRequesterSearch(branch,team,currentMatches));
       }
     }
     return currentMatches; // return currentMatches with upstream branch matches added

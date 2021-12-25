@@ -54,40 +54,22 @@ public class RequestGraphTest {
           .inGraph(requestGraph)
           .withQuery("How many CPUS are you using?")
           .build();
-    } catch (
-        IllegalRequestException e) {
-      fail(e.getMessage());
-    }
 
-    try {
       newBranchRequest = RequestBuilder.ANewRequest(Team.AVIONICS,Team.STRUCTURES)
           .inGraph(requestGraph)
           .withQuery("What's the diameter of the inner tube where the CPUs sit?")
           .toSolve(newRootRequest).build();
-    } catch (IllegalRequestException e) {
-      fail(e.getMessage());
-    }
 
-    try {
       anotherRootRequest = RequestBuilder.ANewRequest(Team.PROPULSION,Team.SPONSORSHIP)
           .inGraph(requestGraph)
           .withQuery("What engine do we have money for?")
           .build();
-    } catch (
-        IllegalRequestException e) {
-      fail(e.getMessage());
-    }
 
-    try {
       anotherBranchRequest = RequestBuilder.ANewRequest(Team.SPONSORSHIP,Team.SYSTEMS)
           .inGraph(requestGraph)
           .withQuery("Do you know any engine companies?")
           .toSolve(anotherRootRequest).build();
-    } catch (IllegalRequestException e) {
-      fail(e.getMessage());
-    }
 
-    try {
       anotherAnotherRootRequest = RequestBuilder.ANewRequest(Team.SYSTEMS,Team.STRUCTURES)
           .inGraph(requestGraph)
           .withQuery("Are we using carbon fibre?")
@@ -96,6 +78,53 @@ public class RequestGraphTest {
         IllegalRequestException e) {
       fail(e.getMessage());
     }
+
+    System.out.println(requestGraph);
+    assertEquals("""
+                    Root Request #1 from Systems to Avionics: How many CPUS are you using?
+                    Waiting on:\s
+                    	Branch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?
+                    Root Request #3 from Propulsion to Sponsorships: What engine do we have money for?
+                    Waiting on:\s
+                    	Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                    Root Request #5 from Systems to Structures: Are we using carbon fibre?
+                    """,requestGraph.toString());
+  }
+
+
+  @Test
+  public void searchUsingIDTest(){
+
+    try {
+          RequestBuilder.ANewRequest(Team.SYSTEMS,Team.AVIONICS)
+          .inGraph(requestGraph)
+          .withQuery("How many CPUS are you using?")
+          .build();
+
+      RequestBuilder.ANewRequest(Team.AVIONICS,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("What's the diameter of the inner tube where the CPUs sit?")
+          .toSolve(requestGraph.findRequest(1)).build();
+
+      RequestBuilder.ANewRequest(Team.PROPULSION,Team.SPONSORSHIP)
+          .inGraph(requestGraph)
+          .withQuery("What engine do we have money for?")
+          .build();
+
+      RequestBuilder.ANewRequest(Team.SPONSORSHIP,Team.SYSTEMS)
+          .inGraph(requestGraph)
+          .withQuery("Do you know any engine companies?")
+          .toSolve(requestGraph.findRequest(3)).build();
+
+      RequestBuilder.ANewRequest(Team.SYSTEMS,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("Are we using carbon fibre?")
+          .build();
+    } catch (
+        IllegalRequestException e) {
+      fail(e.getMessage());
+    }
+
     System.out.println(requestGraph);
     assertEquals("""
                     Root Request #1 from Systems to Avionics: How many CPUS are you using?
