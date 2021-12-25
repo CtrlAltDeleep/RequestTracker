@@ -84,9 +84,11 @@ public class RequestGraphTest {
                     Root Request #1 from Systems to Avionics: How many CPUS are you using?
                     Waiting on:\s
                     	Branch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?
+                    
                     Root Request #3 from Propulsion to Sponsorships: What engine do we have money for?
                     Waiting on:\s
                     	Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                    
                     Root Request #5 from Systems to Structures: Are we using carbon fibre?
                     """,requestGraph.toString());
   }
@@ -128,9 +130,11 @@ public class RequestGraphTest {
                     Root Request #1 from Systems to Avionics: How many CPUS are you using?
                     Waiting on:\s
                     	Branch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?
+                    
                     Root Request #3 from Propulsion to Sponsorships: What engine do we have money for?
                     Waiting on:\s
                     	Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                    
                     Root Request #5 from Systems to Structures: Are we using carbon fibre?
                     """,requestGraph.toString());
   }
@@ -174,9 +178,11 @@ public class RequestGraphTest {
                     Root Request #1 from Systems to Avionics: How many CPUS are you using?
                     Waiting on:\s
                     	Branch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?
+                    
                     Root Request #3 from Propulsion to Sponsorships: What engine do we have money for?
                     Waiting on:\s
                     	Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                    
                     Root Request #5 from Systems to Structures: Are we using carbon fibre?
                     """,requestGraph.toString());
   }
@@ -220,10 +226,116 @@ public class RequestGraphTest {
                     Root Request #1 from Systems to Avionics: How many CPUS are you using?
                     Waiting on:\s
                     	Branch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?
+                    
                     Root Request #3 from Propulsion to Sponsorships: What engine do we have money for?
                     Waiting on:\s
                     	Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                    
                     Root Request #5 from Systems to Structures: Are we using carbon fibre?
+                    """,requestGraph.toString());
+  }
+
+  @Test
+  public void addingABranchFromExistingRequestUpdatesGraph(){
+    RequestNode mainNode = null;
+    RequestNode subNode = null;
+
+    try {
+      mainNode = RequestBuilder.ANewRequest(Team.SYSTEMS,Team.PROPULSION)
+          .inGraph(requestGraph)
+          .withQuery("What fuel ratio are we using?")
+          .build();
+
+      RequestBuilder.ANewRequest(Team.PROPULSION,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("What's the diameter of the inner tube where the CPUs sit?")
+          .toSolve(mainNode)
+          .build();
+
+      subNode = RequestBuilder.ANewRequest(Team.PROPULSION,Team.SPONSORSHIP)
+          .inGraph(requestGraph)
+          .withQuery("What engine do we have money for?")
+          .build(); // unlinked - setup as a root
+
+      RequestBuilder.ANewRequest(Team.SPONSORSHIP,Team.SYSTEMS)
+          .inGraph(requestGraph)
+          .withQuery("Do you know any engine companies?")
+          .toSolve(subNode)
+          .build();
+
+      RequestBuilder.ANewRequest(Team.SPONSORSHIP,Team.PROPULSION)
+          .inGraph(requestGraph)
+          .withQuery("Do you know any engine companies?")
+          .toSolve(subNode)
+          .build();
+
+      mainNode.addBranch(subNode,requestGraph);
+
+    } catch (
+        IllegalRequestException e) {
+      fail(e.getMessage());
+    }
+
+    assertEquals("""
+                   Root Request #1 from Systems to Propulsion: What fuel ratio are we using?
+                   Waiting on:\s
+                   	Branch Request #2 from Propulsion to Structures: What's the diameter of the inner tube where the CPUs sit?
+                   	Branch Request #3 from Propulsion to Sponsorships: What engine do we have money for?
+                   	Waiting on:\s
+                   		Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                   		Branch Request #5 from Sponsorships to Propulsion: Do you know any engine companies?
+                    """,requestGraph.toString());
+  }
+
+  @Test
+  public void settingTheSourceToAExistingRequestUpdatesGraph(){
+    RequestNode mainNode = null;
+    RequestNode subNode = null;
+
+    try {
+      mainNode = RequestBuilder.ANewRequest(Team.SYSTEMS,Team.PROPULSION)
+          .inGraph(requestGraph)
+          .withQuery("What fuel ratio are we using?")
+          .build();
+
+      RequestBuilder.ANewRequest(Team.PROPULSION,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("What's the diameter of the inner tube where the CPUs sit?")
+          .toSolve(mainNode)
+          .build();
+
+      subNode = RequestBuilder.ANewRequest(Team.PROPULSION,Team.SPONSORSHIP)
+          .inGraph(requestGraph)
+          .withQuery("What engine do we have money for?")
+          .build(); // unlinked - setup as a root
+
+      RequestBuilder.ANewRequest(Team.SPONSORSHIP,Team.SYSTEMS)
+          .inGraph(requestGraph)
+          .withQuery("Do you know any engine companies?")
+          .toSolve(subNode)
+          .build();
+
+      RequestBuilder.ANewRequest(Team.SPONSORSHIP,Team.PROPULSION)
+          .inGraph(requestGraph)
+          .withQuery("Do you know any engine companies?")
+          .toSolve(subNode)
+          .build();
+
+      subNode.setSource(mainNode,requestGraph);
+
+    } catch (
+        IllegalRequestException e) {
+      fail(e.getMessage());
+    }
+
+    assertEquals("""
+                   Root Request #1 from Systems to Propulsion: What fuel ratio are we using?
+                   Waiting on:\s
+                   	Branch Request #2 from Propulsion to Structures: What's the diameter of the inner tube where the CPUs sit?
+                   	Branch Request #3 from Propulsion to Sponsorships: What engine do we have money for?
+                   	Waiting on:\s
+                   		Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                   		Branch Request #5 from Sponsorships to Propulsion: Do you know any engine companies?
                     """,requestGraph.toString());
   }
 }

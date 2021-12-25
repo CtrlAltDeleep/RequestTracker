@@ -129,21 +129,22 @@ public class RequestNode {
    */
   protected void setSource(RequestNode newSource, RequestGraph requestGraph)
       throws IllegalRequestException {
+
+    if ((newSource != null) && (newSource.getRequestee() != requester)) { // lazy evaluation
+      throw new IllegalRequestException(
+          "New request tried to solve for a request not directed to the team.");
+    }
+
     if (newSource != null) {
-      if (source != null) {
+      if (source == null) { // node is currently a root
+        requestGraph.removeRoot(this);
+      } else {
         source.removeBranch(this);
       }
-      if (newSource.getRequestee() == requester) {
-        this.source = newSource;
-        newSource.addBranch(this, requestGraph);
-      } else {
-        if (source != null) { // revert changes
-          source.addBranch(this, requestGraph);
-        }
-        throw new IllegalRequestException(
-            "New request tried to solve for a request not directed to the team.");
-      }
-    } else { // we want to make this request a root
+      this.source = newSource;
+      newSource.addBranch(this, requestGraph);
+    }
+    else { // we want to make this request a root
       if (source != null) {
         source.removeBranch(this);
       }
@@ -158,7 +159,7 @@ public class RequestNode {
    *
    * @param newSource new source
    */
-  private void hardSetSource(RequestNode newSource) {
+  private void hardSetSource(RequestNode newSource, RequestGraph requestGraph) {
     source = newSource;
   }
 
@@ -178,11 +179,11 @@ public class RequestNode {
       if (newBranch.isRoot()) {
         branches.add(newBranch);
         requestGraph.removeRoot(newBranch); // let graph know we newBranch isn't a root anymore
-        newBranch.hardSetSource(this);
+        newBranch.hardSetSource(this, requestGraph);
       } else {
         newBranch.getSource().removeBranch(newBranch);
         branches.add(newBranch);
-        newBranch.hardSetSource(this);
+        newBranch.hardSetSource(this, requestGraph);
       }
     } else {
       throw new IllegalRequestException(

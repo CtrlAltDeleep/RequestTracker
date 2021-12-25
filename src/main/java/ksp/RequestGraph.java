@@ -135,12 +135,17 @@ public class RequestGraph {
     return currentMatches; // return currentMatches with upstream branch matches added
   }
 
+  protected ArrayList<RequestNode> getRootRequests(){
+    return rootRequests;
+  }
+
   @Override
   public String toString() {
      StringBuilder output = new StringBuilder();
      for (RequestNode root :rootRequests){
-       output.append(root.toString()).append("\n");
+      output.append(root.toString()).append("\n\n");
      }
+     output.deleteCharAt(output.length() - 1);
      return output.toString();
   }
 }
