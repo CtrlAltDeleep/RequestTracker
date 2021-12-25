@@ -1,3 +1,7 @@
+/**
+ * @author Avaneesh Deleep <a href="mailto:ad2820@ic.ac.uk">Email for bug reports</a>
+ */
+
 package ksp;
 
 import java.util.ArrayList;

@@ -1,3 +1,7 @@
+/**
+ * @author Avaneesh Deleep <a href="mailto:ad2820@ic.ac.uk">Email for bug reports</a>
+ */
+
 package ksp;
 
 import java.util.ArrayList;
@@ -7,8 +11,10 @@ import ksp.utilities.IDGenerator;
 import ksp.utilities.RequestDirection;
 import ksp.utilities.Team;
 
+
+
 public class RequestGraph {
-  public static ArrayList<RequestNode> rootRequests;
+  private static ArrayList<RequestNode> rootRequests;
 
   public RequestGraph(ArrayList<RequestNode> rootRequests) {
     RequestGraph.rootRequests = rootRequests;

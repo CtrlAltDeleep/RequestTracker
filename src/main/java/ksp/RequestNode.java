@@ -1,3 +1,7 @@
+/**
+ * @author Avaneesh Deleep <a href="mailto:ad2820@ic.ac.uk">Email for bug reports</a>
+ */
+
 package ksp;
 
 import java.util.LinkedList;
@@ -17,6 +21,16 @@ public class RequestNode {
   private final int id;
 
   /* RequestNode constructor is package-private. Please use builder instead. */
+
+  /**
+   * @param requester Team that is requesting (who the request is from)
+   * @param requestee Team that the request id directed to
+   * @param details String containing actual question or query
+   * @param source Request that this Request is trying to resolve
+   * @param branches List of requests that are trying to solve this request
+   * @param requestGraph The graph that tracks this request - auto-links on construction
+   * @throws IllegalRequestException if the request is invalid
+   */
   RequestNode(
       Team requester,
       Team requestee,
@@ -46,43 +60,45 @@ public class RequestNode {
     id = IDGenerator.generateNewID();
   }
 
-  public boolean isRoot() {
+  protected boolean isRoot() {
     return source == null;
   }
 
-  public boolean isTip() {
+  protected boolean isTip() {
     return branches.isEmpty();
   }
 
-  public Team getRequester() {
+  protected Team getRequester() {
     return requester;
   }
 
-  public Team getRequestee() {
+  protected Team getRequestee() {
     return requestee;
   }
 
-  public RequestNode getSource() {
+  protected RequestNode getSource() {
     return source;
   }
 
-  public List<RequestNode> getBranches() {
+  protected List<RequestNode> getBranches() {
     return branches;
   }
 
-  public String getDetails() {
+  protected String getDetails() {
     return details;
   }
 
-  public void setDetails(String details) {
+  protected void setDetails(String details) {
     this.details = details;
   }
 
-  /*
-  Removes a request node from the dependency graph.
-  If the node is not a tip, then all branches are deleted.
-  */
-  public void removeRequest(RequestGraph requestGraph) {
+  /**
+   *  Removes a request node from the dependency graph. If the node is not a tip, then all
+   *  branches are deleted.
+   *
+   * @param requestGraph The request graph that tracks this request
+   */
+  protected void removeRequest(RequestGraph requestGraph) {
     if (!isRoot()) {
       source.removeBranch(this);
     } else {
@@ -102,13 +118,17 @@ public class RequestNode {
     requestee = newRequestee;
   }
 
-  /*
-  Sets the source of this Request, and updates this source to
-  have this as a branch. If there is a mismatch with the source requestee
-  and this node's requester, then throw an IllegalRequestException. If there
-  was a previous source then unlink that.
-  */
-  public void setSource(RequestNode newSource, RequestGraph requestGraph) throws IllegalRequestException {
+  /**
+   * Sets the source of this Request, and updates this source to have this as a branch. If there is
+   * a mismatch with the source requestee and this node's requester, then throw an
+   * IllegalRequestException. If there was a previous source then unlink that.
+   *
+   * @param newSource New source to set. Can be null to set RequestNode to root.
+   * @param requestGraph The request graph that tracks this request
+   * @throws IllegalRequestException if the newSource isn't directed at this request
+   */
+  protected void setSource(RequestNode newSource, RequestGraph requestGraph)
+      throws IllegalRequestException {
     if (newSource != null) {
       if (source != null) {
         source.removeBranch(this);
@@ -132,21 +152,27 @@ public class RequestNode {
     }
   }
 
-  /*
-  Force sets source. DO NOT CALL without first checking newSource.requestee == this.requester
-  Used by addBranch to prevent cycles
-  */
+  /**
+   * Force sets source. DO NOT CALL without first checking newSource.requestee == this.requester
+   * Used by addBranch to prevent cycles
+   *
+   * @param newSource new source
+   */
   private void hardSetSource(RequestNode newSource) {
     source = newSource;
   }
 
-  /*
-  Adds the Request as a branch, and updates the Requests old source by
-  removing it if the Request is not a root. If there is a mismatch with the
-  new branches requester and this node's requestee, then throw an IllegalRequestException.
-  Does not use setSource on newBranch to prevent function call cycle.
-  */
-  public void addBranch(@NotNull RequestNode newBranch, RequestGraph requestGraph)
+  /**
+   * Adds the Request as a branch, and updates the Requests old source by removing it if the Request
+   * is not a root. If there is a mismatch with the new branches requester and this node's
+   * requestee, then throw an IllegalRequestException. Does not use setSource on newBranch to
+   * prevent function call cycle.
+   *
+   * @param newBranch New branch to add to this Request Node
+   * @param requestGraph The request graph that tracks this request
+   * @throws IllegalRequestException is the branch to be added doesn't solve this request
+   */
+  protected void addBranch(@NotNull RequestNode newBranch, RequestGraph requestGraph)
       throws IllegalRequestException {
     if (newBranch.getRequester() == requestee) {
       if (newBranch.isRoot()) {
@@ -164,7 +190,7 @@ public class RequestNode {
     }
   }
 
-  public void removeBranch(RequestNode newBranch) {
+  protected void removeBranch(RequestNode newBranch) {
     branches.remove(newBranch);
   }
 
@@ -207,7 +233,7 @@ public class RequestNode {
     return Objects.equals(id, that.id) && Objects.equals(details, that.details);
   }
 
-  public int getID() {
+  protected int getID() {
     return id;
   }
 }
