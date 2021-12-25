@@ -45,16 +45,14 @@ public class RequestGraph {
   }
 
   public boolean addNewRequest(RequestNode newRequest) {
-    if (newRequest.isRoot()){
-      rootRequests.add(newRequest);
-    }
     //TODO saveDataToPath();
     return true;
   }
 
-  public boolean resolveRequest(RequestNode request){
+  public boolean resolveRequest(RequestNode request, String solution){
     request.removeRequest(this);
     // TODO saveDataToPath();
+    // TODO save solution and solved request to archive log
     return true;
   }
 
@@ -135,8 +133,27 @@ public class RequestGraph {
     return currentMatches; // return currentMatches with upstream branch matches added
   }
 
-  protected ArrayList<RequestNode> getRootRequests(){
-    return rootRequests;
+  public ArrayList<RequestNode> getImmediateProblems() {
+    Set<RequestNode> output = new HashSet<>();
+    for (RequestNode root : rootRequests) {
+      output.addAll(findAllTipsSearch(root,new HashSet<>()));
+    }
+    return new ArrayList<>(output);
+  }
+
+  private Set<RequestNode> findAllTipsSearch(
+      RequestNode requestToCheck,
+      Set<RequestNode> currentMatches) {
+
+    if (requestToCheck.isTip()){ // no more branches to search here
+      currentMatches.add(requestToCheck);
+      return currentMatches;
+    }else{
+      for (RequestNode branch:requestToCheck.getBranches()){ // search branches
+        currentMatches.addAll(findAllTipsSearch(branch,currentMatches));
+      }
+    }
+    return currentMatches;
   }
 
   @Override
@@ -145,7 +162,9 @@ public class RequestGraph {
      for (RequestNode root :rootRequests){
       output.append(root.toString()).append("\n\n");
      }
+    try{
      output.deleteCharAt(output.length() - 1);
+     } catch (Exception ignored){}
      return output.toString();
   }
 }

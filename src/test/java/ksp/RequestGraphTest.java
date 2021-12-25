@@ -4,13 +4,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.List;
 import ksp.exceptions.IllegalRequestException;
+import ksp.utilities.IDGenerator;
 import ksp.utilities.RequestDirection;
 import ksp.utilities.Team;
 import org.junit.Test;
 
 public class RequestGraphTest {
   RequestGraph requestGraph = new RequestGraph(new ArrayList<>());
+  boolean successfulIDGenCreation = IDGenerator.init(0);
 
   @Test
   public void addingASingleRootRequestCorrectlyLinksToGraph(){
@@ -337,5 +340,134 @@ public class RequestGraphTest {
                    		Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
                    		Branch Request #5 from Sponsorships to Propulsion: Do you know any engine companies?
                     """,requestGraph.toString());
+  }
+
+  @Test
+  public void settingTheSourceToNullUpdatesGraph(){
+    RequestNode newRoot = null;
+    RequestNode root = null;
+
+    try {
+      root = RequestBuilder.ANewRequest(Team.SYSTEMS,Team.PROPULSION)
+          .inGraph(requestGraph)
+          .withQuery("What fuel ratio are we using?")
+          .build();
+
+      newRoot = RequestBuilder.ANewRequest(Team.PROPULSION,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("Something unrelated...oops, i hope we can move it")
+          .toSolve(root)
+          .build();
+
+      newRoot.setSource(null,requestGraph);
+
+    } catch (
+        IllegalRequestException e) {
+      fail(e.getMessage());
+    }
+
+    assertEquals("""
+                   Root Request #1 from Systems to Propulsion: What fuel ratio are we using?
+                   
+                   Root Request #2 from Propulsion to Structures: Something unrelated...oops, i hope we can move it
+                    """,requestGraph.toString());
+  }
+
+  @Test
+  public void resolvingTipRequestUpdatesGraph(){
+    RequestNode tip = null;
+    RequestNode root = null;
+
+    try {
+      root = RequestBuilder.ANewRequest(Team.SYSTEMS,Team.PROPULSION)
+          .inGraph(requestGraph)
+          .withQuery("What fuel ratio are we using?")
+          .build();
+
+      tip = RequestBuilder.ANewRequest(Team.PROPULSION,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("What max speed can we handle?")
+          .toSolve(root)
+          .build();
+
+    } catch (
+        IllegalRequestException e) {
+      fail(e.getMessage());
+    }
+
+    requestGraph.resolveRequest(tip, "1 m/s ... if we throw it real hard");
+
+    assertEquals("""
+                   Root Request #1 from Systems to Propulsion: What fuel ratio are we using?
+                    """,requestGraph.toString());
+  }
+
+  @Test
+  public void resolvingRootRequestUpdatesGraph(){
+    RequestNode tip = null;
+    RequestNode root = null;
+
+    try {
+      root = RequestBuilder.ANewRequest(Team.SYSTEMS,Team.PROPULSION)
+          .inGraph(requestGraph)
+          .withQuery("What fuel ratio are we using?")
+          .build();
+
+      tip = RequestBuilder.ANewRequest(Team.PROPULSION,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("What max speed can we handle?")
+          .toSolve(root)
+          .build();
+
+    } catch (
+        IllegalRequestException e) {
+      fail(e.getMessage());
+    }
+
+    requestGraph.resolveRequest(root, "Realised we dont need this. Sorry");
+
+    assertEquals("",requestGraph.toString());
+  }
+
+  @Test
+  public void graphCanCorrectlyReturnAllRequestsThatCanBeResolvedImmediately(){
+    try {
+      RequestBuilder.ANewRequest(Team.SYSTEMS,Team.AVIONICS)
+          .inGraph(requestGraph)
+          .withQuery("How many CPUS are you using?")
+          .build();
+
+      RequestBuilder.ANewRequest(Team.AVIONICS,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("What's the diameter of the inner tube where the CPUs sit?")
+          .toSolve(requestGraph.findRequests(RequestDirection.FROM, Team.SYSTEMS).get(0))
+          .build();
+
+      RequestBuilder.ANewRequest(Team.PROPULSION,Team.SPONSORSHIP)
+          .inGraph(requestGraph)
+          .withQuery("What engine do we have money for?")
+          .build();
+
+      RequestBuilder.ANewRequest(Team.SPONSORSHIP,Team.SYSTEMS)
+          .inGraph(requestGraph)
+          .withQuery("Do you know any engine companies?")
+          .toSolve(requestGraph.findRequests(RequestDirection.FROM, Team.PROPULSION).get(0))
+          .build();
+
+      RequestBuilder.ANewRequest(Team.SYSTEMS,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("Are we using carbon fibre?")
+          .build();
+    } catch (
+        IllegalRequestException e) {
+      fail(e.getMessage());
+    }
+
+    assertEquals(List.of(
+        requestGraph.findRequest(2),
+        requestGraph.findRequest(4),
+        requestGraph.findRequest(5)),
+
+        requestGraph.getImmediateProblems());
   }
 }

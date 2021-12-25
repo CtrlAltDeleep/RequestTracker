@@ -210,7 +210,9 @@ public class RequestNode {
         detailsString.append(branch.toStringHelper(tabLevel + 1));
         detailsString.append("\n");
       }
-      detailsString.deleteCharAt(detailsString.length() - 1);
+      try{
+        detailsString.deleteCharAt(detailsString.length() - 1);
+      } catch (Exception ignored){}
     }
 
     if (isRoot()) {
