@@ -68,9 +68,9 @@ public class RequestGraph {
     return null;
   }
 
-  public ArrayList<RequestNode> findRequests(Team team, RequestDirection direction){
+  public ArrayList<RequestNode> findRequests(RequestDirection direction, Team team){
     Set<RequestNode> output = new HashSet<>();
-    if (direction == RequestDirection.FROM_US){
+    if (direction == RequestDirection.FROM){
       // find requests that this team made / are the requester for
       for (RequestNode root : rootRequests) {
         output.addAll(findRequestsRequesterSearch(root,team,new HashSet<>()));
@@ -129,7 +129,7 @@ public class RequestGraph {
       return currentMatches;
     }else{
       for (RequestNode branch:requestToCheck.getBranches()){ // search branches
-        currentMatches.addAll(findRequestsRequesteeSearch(requestToCheck,team,currentMatches));
+        currentMatches.addAll(findRequestsRequesteeSearch(branch,team,currentMatches));
       }
     }
     return currentMatches; // return currentMatches with upstream branch matches added
