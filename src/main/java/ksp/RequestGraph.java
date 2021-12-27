@@ -4,6 +4,14 @@
 
 package ksp;
 
+import com.google.auth.Credentials;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.BucketInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,7 +34,27 @@ public class RequestGraph {
     IDGenerator.init(0); //TODO: replace with int read from file
   }
 
-  public ArrayList<RequestNode> readDataFromPath(String path) {
+  public ArrayList<RequestNode> readDataFromPath(String credentialsPath) {
+
+    if (credentialsPath == null) {
+      credentialsPath = System.getProperty("user.dir") + "/ksp-request-tracker-8291299f282f.json";
+    }
+
+    Credentials credentials = null;
+    try {
+      credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsPath));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    Storage storage =
+        StorageOptions.newBuilder()
+            .setCredentials(credentials)
+            .setProjectId("ksp-request-tracker\n")
+            .build()
+            .getService();
+
+    Bucket bucket = storage.create(BucketInfo.of("ksp-request-node-bucket"));
+
     // TODO: also set IDgen state
     return null;
   }
@@ -51,6 +79,7 @@ public class RequestGraph {
 
   public boolean resolveRequest(RequestNode request, String solution){
     request.removeRequest(this);
+
     // TODO saveDataToPath();
     // TODO save solution and solved request to archive log
     return true;

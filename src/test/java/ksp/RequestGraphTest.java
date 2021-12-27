@@ -1,9 +1,24 @@
 package ksp;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import com.google.api.gax.paging.Page;
+import com.google.auth.Credentials;
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.BucketInfo;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+import com.google.common.collect.Lists;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import ksp.exceptions.IllegalRequestException;
 import ksp.utilities.IDGenerator;
@@ -463,11 +478,38 @@ public class RequestGraphTest {
       fail(e.getMessage());
     }
 
-    assertEquals(List.of(
+    assertThat("List equality without order", requestGraph.getImmediateProblems(),
+        containsInAnyOrder(Arrays.asList(
         requestGraph.findRequest(2),
         requestGraph.findRequest(4),
-        requestGraph.findRequest(5)),
-
-        requestGraph.getImmediateProblems());
+        requestGraph.findRequest(5)).toArray()));
   }
+
+/*
+  @Test
+  public void bucketSetUp(){
+    String credentialsPath = System.getProperty("user.dir") + "/ksp-request-tracker-8291299f282f.json";
+
+    Credentials credentials = null;
+    try {
+      credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsPath)).createScoped(
+          Lists.newArrayList("https://www.googleapis.com/auth/cloud-platform"));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    Storage storage =
+        StorageOptions.newBuilder()
+            .setCredentials(credentials)
+            .setProjectId("ksp-request-tracker\n")
+            .build()
+            .getService();
+    System.out.println(BucketInfo.of("ksp-request-node-bucket"));
+    Bucket bucket = storage.create(BucketInfo.of("ksp-request-node-bucket"));
+
+    String value = "Hello, World!";
+    byte[] bytes = value.getBytes(UTF_8);
+    Blob blob = bucket.create("my-first-blob", bytes);
+  }
+ */
 }
