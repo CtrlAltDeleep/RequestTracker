@@ -5,7 +5,7 @@ public enum Team {
   PROPULSION("Propulsion", "ad2820@ic.ac.uk"),
   STRUCTURES("Structures", "ad2820@ic.ac.uk"),
   SYSTEMS("Systems", "ad2820@ic.ac.uk"),
-  SPONSORSHIP("Sponsorships", "ad2820@ic.ac.uk");
+  SPONSORSHIP("Sponsorship", "ad2820@ic.ac.uk");
   // we can add new teams as we go on here
 
   private final String name;

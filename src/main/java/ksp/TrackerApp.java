@@ -1,15 +1,23 @@
 package ksp;
 
+import java.util.ArrayList;
+import ksp.utilities.IDGenerator;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 public class TrackerApp {
+  RequestGraph requestGraph = new RequestGraph(new ArrayList<>());
+  boolean successfulIDGenCreation = IDGenerator.init(0);
 
-    /**
+  public TrackerApp() {
+  }
+
+  /**
      * Runs the application
      *
      * @param args an array of String arguments to be parsed
@@ -18,9 +26,9 @@ public class TrackerApp {
 
       CommandLine line = parseArguments(args);
 
-      if (line.hasOption("filename")) {
+      if (line.hasOption("display")) {
 
-        System.out.println(line.getOptionValue("filename"));
+        System.out.println(line.getOptionValue("display"));
         String fileName = line.getOptionValue("filename");
 
 
@@ -66,8 +74,10 @@ public class TrackerApp {
     private Options getOptions() {
 
       var options = new Options();
+      options.addOption("s", "set",true, "set team that is using the tracker");
+      options.addOption("r", "request",true, "file name to load data from");
+      options.addOption("d", "display",true, "show request graph");
 
-      options.addOption("f", "filename", true, "file name to load data from");
       return options;
     }
 

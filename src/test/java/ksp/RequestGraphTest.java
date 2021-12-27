@@ -1,25 +1,13 @@
 package ksp;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import com.google.api.gax.paging.Page;
-import com.google.auth.Credentials;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.BucketInfo;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
-import com.google.common.collect.Lists;
-import java.io.FileInputStream;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import ksp.exceptions.IllegalRequestException;
 import ksp.utilities.IDGenerator;
 import ksp.utilities.RequestDirection;
@@ -103,9 +91,9 @@ public class RequestGraphTest {
                     Waiting on:\s
                     	Branch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?
                     
-                    Root Request #3 from Propulsion to Sponsorships: What engine do we have money for?
+                    Root Request #3 from Propulsion to Sponsorship: What engine do we have money for?
                     Waiting on:\s
-                    	Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                    	Branch Request #4 from Sponsorship to Systems: Do you know any engine companies?
                     
                     Root Request #5 from Systems to Structures: Are we using carbon fibre?
                     """,requestGraph.toString());
@@ -149,9 +137,9 @@ public class RequestGraphTest {
                     Waiting on:\s
                     	Branch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?
                     
-                    Root Request #3 from Propulsion to Sponsorships: What engine do we have money for?
+                    Root Request #3 from Propulsion to Sponsorship: What engine do we have money for?
                     Waiting on:\s
-                    	Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                    	Branch Request #4 from Sponsorship to Systems: Do you know any engine companies?
                     
                     Root Request #5 from Systems to Structures: Are we using carbon fibre?
                     """,requestGraph.toString());
@@ -197,9 +185,9 @@ public class RequestGraphTest {
                     Waiting on:\s
                     	Branch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?
                     
-                    Root Request #3 from Propulsion to Sponsorships: What engine do we have money for?
+                    Root Request #3 from Propulsion to Sponsorship: What engine do we have money for?
                     Waiting on:\s
-                    	Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                    	Branch Request #4 from Sponsorship to Systems: Do you know any engine companies?
                     
                     Root Request #5 from Systems to Structures: Are we using carbon fibre?
                     """,requestGraph.toString());
@@ -245,9 +233,9 @@ public class RequestGraphTest {
                     Waiting on:\s
                     	Branch Request #2 from Avionics to Structures: What's the diameter of the inner tube where the CPUs sit?
                     
-                    Root Request #3 from Propulsion to Sponsorships: What engine do we have money for?
+                    Root Request #3 from Propulsion to Sponsorship: What engine do we have money for?
                     Waiting on:\s
-                    	Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
+                    	Branch Request #4 from Sponsorship to Systems: Do you know any engine companies?
                     
                     Root Request #5 from Systems to Structures: Are we using carbon fibre?
                     """,requestGraph.toString());
@@ -298,10 +286,10 @@ public class RequestGraphTest {
                    Root Request #1 from Systems to Propulsion: What fuel ratio are we using?
                    Waiting on:\s
                    	Branch Request #2 from Propulsion to Structures: What's the diameter of the inner tube where the CPUs sit?
-                   	Branch Request #3 from Propulsion to Sponsorships: What engine do we have money for?
+                   	Branch Request #3 from Propulsion to Sponsorship: What engine do we have money for?
                    	Waiting on:\s
-                   		Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
-                   		Branch Request #5 from Sponsorships to Propulsion: Do you know any engine companies?
+                   		Branch Request #4 from Sponsorship to Systems: Do you know any engine companies?
+                   		Branch Request #5 from Sponsorship to Propulsion: Do you know any engine companies?
                     """,requestGraph.toString());
   }
 
@@ -350,10 +338,10 @@ public class RequestGraphTest {
                    Root Request #1 from Systems to Propulsion: What fuel ratio are we using?
                    Waiting on:\s
                    	Branch Request #2 from Propulsion to Structures: What's the diameter of the inner tube where the CPUs sit?
-                   	Branch Request #3 from Propulsion to Sponsorships: What engine do we have money for?
+                   	Branch Request #3 from Propulsion to Sponsorship: What engine do we have money for?
                    	Waiting on:\s
-                   		Branch Request #4 from Sponsorships to Systems: Do you know any engine companies?
-                   		Branch Request #5 from Sponsorships to Propulsion: Do you know any engine companies?
+                   		Branch Request #4 from Sponsorship to Systems: Do you know any engine companies?
+                   		Branch Request #5 from Sponsorship to Propulsion: Do you know any engine companies?
                     """,requestGraph.toString());
   }
 
