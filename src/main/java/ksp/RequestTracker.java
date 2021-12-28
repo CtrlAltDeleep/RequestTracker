@@ -1,13 +1,17 @@
 package ksp;
 
+import static ksp.RequestBuilder.ANewRequest;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import ksp.exceptions.IllegalRequestException;
 import ksp.utilities.IDGenerator;
 import ksp.utilities.RequestDirection;
 import ksp.utilities.Team;
+import org.jetbrains.annotations.NotNull;
 
 public class RequestTracker {
   static Team user;
@@ -17,12 +21,13 @@ public class RequestTracker {
   static String info = "❕   ";
   static String prompt = ">>>   ";
   static RequestGraph requestGraph;
+  static boolean run = true;
 
 
   /**
    * Application entry point.
    *
-   * @param args application command line arguments
+   * @param args TODO: to be used to specify to launch in gui mode
    */
   public static void main(String[] args) {
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -57,7 +62,7 @@ public class RequestTracker {
     System.out.println(info + "Type \"help\" to show options.");
 
     String line = null;
-    while(true){
+    while(run){
       try {
         System.out.print(prompt);
         line = reader.readLine().toUpperCase();
@@ -65,64 +70,158 @@ public class RequestTracker {
           System.out.println(error + "Invalid command. Type help for command options.");
         }
       } catch (Exception e) {
-        System.out.println(error + "Hmmmmm...something unexpected happened. "
-            + "Please contact me (Avaneesh), with how you got this error, and I'll try to resolve it.");
+        System.out.println(error + "Debug log: " + e.getMessage());
+        System.out.println(error + "Invalid command. Type help for command options.");
       }
     }
+    exit();
   }
 
   private static boolean parse(String line){
-    if (line.toLowerCase().equals("help")){
+    line = line.stripLeading();
+    String command = line.split(" ")[0];
+
+    if (command.equalsIgnoreCase("help")){
       showHelp();
       return true;
     } else if (line.equals("")){
       return true;
+    }else if (command.equalsIgnoreCase("exit")){
+      run = false;
+      return true;
     }
-    String command = line.split(" ")[0].toLowerCase();
 
-    if (command.equals("display")){
+    if (command.equalsIgnoreCase("display")){
       showGraph(line.split(" ")[1].toLowerCase());
       return true;
+    }
+
+    if (command.equalsIgnoreCase("request")) {
+      String args = line.substring(command.length() + 2);
+      return request(args);
+    }
+
+    if (command.equalsIgnoreCase("solve")){
+      String args = line.substring(command.length() + 1);
+      return solve(args);
     }
     System.out.println(line);
     return false;
   }
 
-  private static void showGraph(String type) {
+  private static boolean solve(String args){
+    RequestNode request = null;
+    int id = 0;
+    try{
+      id = Integer.parseInt(args.split(" ")[0]);
+    }catch (Exception e){
+      System.out.println(error + "ID could not be parsed.");
+      return false;
+    }
+    try{
+      request = requestGraph.findRequest(id);
+    }catch (Exception e){
+      System.out.println(error + e.getMessage());
+      return false;
+    }
+    if (request == null){
+      System.out.println(error + "Request with ID #" + id + " not found.");
+      return false;
+    }
+
+    String solution = args.substring(args.indexOf("\"")+1).stripTrailing();
+    solution = solution.substring(0,solution.length()-1);
+
+    requestGraph.resolveRequest(request,solution);
+    System.out.println(success + request + "\n" + success + "Marked as solved with solution: " + solution);
+
+    return true;
+  }
+
+  private static boolean request(@NotNull String args){
+    String query = args.substring(0, args.indexOf("\""));
+
+    args = args.substring(1);
+    String[] otherArgs = args.substring(args.indexOf("\"") + 2).split(" ");
+    try{
+      Team requestee = Team.valueOf(otherArgs[0]);
+    } catch(Exception e){
+      System.out.println(error + "Invalid Team.");
+      return false;
+    }
+    RequestBuilder newRequest = ANewRequest(user, Team.valueOf(otherArgs[0]))
+        .inGraph(requestGraph)
+        .withQuery(query);
+
+    try {
+      if (otherArgs.length > 1) {
+        newRequest.toSolve(requestGraph.findRequest(Integer.parseInt(otherArgs[1])));
+      }
+    } catch (Exception e) {
+      System.out.println(
+          "Failed to find parse new request creation. Make sure id and team are valid");
+      return false;
+    }
+    RequestNode node;
+    try {
+      node = newRequest.build();
+    } catch (IllegalRequestException e) {
+      System.out.println(e.getMessage());
+      return false;
+    }
+
+    System.out.println("\n" + success + "Added Request:");
+    System.out.println(node + "\n");
+    return true;
+  }
+
+  private static void exit() {
+    System.out.println(info + "Saving Requests and metadata...");
+    //TODO:save
+    System.out.println(success + "Saved and exited.");
+  }
+
+  private static void showGraph(@NotNull String type) {
     ArrayList<RequestNode> outputs = null;
     if (type.equals("all")){
       System.out.println(success + "All unresolved requests:\n");
-      System.out.println(requestGraph);
-    }
-    try{
-      int id = Integer.parseInt(type);
-      System.out.println(success + "Request #"+id+":\n");
-      RequestNode out = requestGraph.findRequest(id);
-      if (out == null){
-        System.out.println(error + "No matches found.");
-      } else {
-      System.out.println(requestGraph.findRequest(id));
+      if (requestGraph.isEmpty()){
+        System.out.println(success + "Wow! There seems to be no requests to solve! This is either really good, or I've messed up and we've lost our data... fingers crossed");
+      }else{
+        System.out.println(requestGraph);
       }
-    } catch (Exception e) {
-      switch (type) {
-        case "sent" -> {
-          System.out.println(success + "All unresolved requests sent by you:\n");
-          outputs = requestGraph.findRequests(RequestDirection.FROM, user);
+    } else{
+      try{
+        int id = Integer.parseInt(type);
+        System.out.println(success + "Request #"+id+":");
+        RequestNode out = requestGraph.findRequest(id);
+        if (out == null){
+          System.out.println(error + "No matches found. For Request #" + id);
+        } else {
+        System.out.println(requestGraph.findRequest(id));
         }
-        case "pending" -> {
-          System.out.println(success + "All requests you still need to solve:\n");
-          outputs = requestGraph.findRequests(RequestDirection.TO, user);
+      } catch (Exception e) {
+        switch (type) {
+          case "sent" -> {
+            System.out.println(success + "All unresolved requests sent by you:\n");
+            outputs = requestGraph.findRequests(RequestDirection.FROM, user);
+          }
+          case "pending" -> {
+            System.out.println(success + "All requests you still need to solve:\n");
+            outputs = requestGraph.findRequests(RequestDirection.TO, user);
+          }
+          case "immediate" -> {
+            System.out.println(success + "All requests that can be solved right now:\n");
+            outputs = requestGraph.getImmediateProblems();
+          }
         }
-        case "immediate" -> {
-          System.out.println(success + "All requests that can be solved right now:\n");
-          outputs = requestGraph.getImmediateProblems();
-        }
-      }
-      if (outputs == null){
-        System.out.println(error + "No matches found.");
-      } else{
-        for (RequestNode request : outputs) {
-          System.out.println(request);
+
+        if (outputs == null || outputs.isEmpty()){
+          System.out.println(error + "No matches found."); //BUG: triggers on all display calls
+        } else{
+          for (RequestNode request : outputs) {
+            System.out.println(request + "\n");
+          }
         }
       }
     }
@@ -134,9 +233,13 @@ public class RequestTracker {
         
         help
              - Launches help screen.
+           
+             
+        exit
+             - Closes program.
 
                  
-         request <query> <team> <(optional) ID of request that this solves for>
+        request <query> <team> <(optional) ID of request that this solves for>
              - Creates a new request from your team to the team specified:
                  query: The question you want to ask - surround in double quote marks
                  team:  Team you want query. One of %s
@@ -173,6 +276,7 @@ public class RequestTracker {
                  e.g. display pending
         """, info, Arrays.toString(Team.values()));
   }
-  //mvn clean compile && mvn package && (java -jar target/RequestTracker-1.0-SNAPSHOT-jar-with-dependencies.jar)
-
 }
+
+
+//mvn clean compile && mvn package && (java -jar target/RequestTracker-1.0-SNAPSHOT-jar-with-dependencies.jar)

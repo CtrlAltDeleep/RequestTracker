@@ -185,6 +185,10 @@ public class RequestGraph {
     return currentMatches;
   }
 
+  public boolean isEmpty(){
+    return rootRequests.isEmpty();
+  }
+
   @Override
   public String toString() {
      StringBuilder output = new StringBuilder();
