@@ -196,7 +196,7 @@ public class RequestTracker {
         System.out.println(success + "Request #"+id+":");
         RequestNode out = requestGraph.findRequest(id);
         if (out == null){
-          System.out.println(error + "No matches found. For Request #" + id);
+          System.out.println(error + "No matches found. For Request #" + id + "\n");
         } else {
         System.out.println(requestGraph.findRequest(id));
         }
@@ -217,7 +217,7 @@ public class RequestTracker {
         }
 
         if (outputs == null || outputs.isEmpty()){
-          System.out.println(error + "No matches found."); //BUG: triggers on all display calls
+          System.out.println(error + "No matches found.\n");
         } else{
           for (RequestNode request : outputs) {
             System.out.println(request + "\n");
