@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import ksp.exceptions.IllegalRequestException;
 import ksp.utilities.IDGenerator;
 import ksp.utilities.RequestDirection;
@@ -239,6 +240,48 @@ public class RequestGraphTest {
                     
                     Root Request #5 from Systems to Structures: Are we using carbon fibre?
                     """,requestGraph.toString());
+  }
+
+  @Test
+  public void searchForPhraseReturnsCorrectRequests(){
+
+    try {
+      RequestBuilder.ANewRequest(Team.SYSTEMS,Team.AVIONICS)
+          .inGraph(requestGraph)
+          .withQuery("How many CPUS are you using?")
+          .build();
+
+      RequestBuilder.ANewRequest(Team.AVIONICS,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("What's the diameter of the inner tube where the CPUs sit?")
+          .toSolve(requestGraph.findRequests(RequestDirection.TO, Team.AVIONICS).get(0))
+          .build();
+
+      RequestBuilder.ANewRequest(Team.PROPULSION,Team.SPONSORSHIP)
+          .inGraph(requestGraph)
+          .withQuery("What engine do we have money for?")
+          .build();
+
+      RequestBuilder.ANewRequest(Team.SPONSORSHIP,Team.SYSTEMS)
+          .inGraph(requestGraph)
+          .withQuery("Do you know any engine companies?")
+          .toSolve(requestGraph.findRequests(RequestDirection.TO, Team.SPONSORSHIP).get(0))
+          .build();
+
+      RequestBuilder.ANewRequest(Team.SYSTEMS,Team.STRUCTURES)
+          .inGraph(requestGraph)
+          .withQuery("Are we using carbon fibre?")
+          .build();
+    } catch (
+        IllegalRequestException e) {
+      fail(e.getMessage());
+    }
+
+    assertThat("List equality without order",  requestGraph.findRequests("diameter"),
+        containsInAnyOrder(List.of(requestGraph.findRequest(2)).toArray()));
+
+    assertThat("List equality without order",  requestGraph.findRequests("CPU"),
+        containsInAnyOrder(List.of(requestGraph.findRequest(2),requestGraph.findRequest(1)).toArray()));
   }
 
   @Test

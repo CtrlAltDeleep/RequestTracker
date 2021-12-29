@@ -111,6 +111,15 @@ public class RequestGraph {
     return new ArrayList<>(output);
   }
 
+  public ArrayList<RequestNode> findRequests(String keywords){
+    Set<RequestNode> output = new HashSet<>();
+    for (RequestNode root : rootRequests) {
+      output.addAll(findKeyWordsSearch(root,keywords.toLowerCase(),new HashSet<>()));
+    }
+    return new ArrayList<>(output);
+  }
+
+
   private RequestNode findRequestIDSearch(RequestNode requestToCheck, int id) {
     if (requestToCheck.getID() == id){ // current request matches
       return requestToCheck;
@@ -157,6 +166,24 @@ public class RequestGraph {
     }else{
       for (RequestNode branch:requestToCheck.getBranches()){ // search branches
         currentMatches.addAll(findRequestsRequesteeSearch(branch,team,currentMatches));
+      }
+    }
+    return currentMatches; // return currentMatches with upstream branch matches added
+  }
+
+  private Set<RequestNode> findKeyWordsSearch(
+      RequestNode requestToCheck,
+      String keywords,
+      Set<RequestNode> currentMatches) {
+
+    if (requestToCheck.getDetails().toLowerCase().contains(keywords)){ // current request contains key phrase
+      currentMatches.add(requestToCheck);
+    }
+    if (requestToCheck.isTip()){ // no more branches to search here
+      return currentMatches;
+    }else{
+      for (RequestNode branch:requestToCheck.getBranches()){ // search branches
+        currentMatches.addAll(findKeyWordsSearch(branch,keywords,currentMatches));
       }
     }
     return currentMatches; // return currentMatches with upstream branch matches added
