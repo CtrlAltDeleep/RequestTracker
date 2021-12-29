@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import ksp.exceptions.IllegalRequestException;
 import ksp.utilities.IDGenerator;
 import ksp.utilities.RequestDirection;
@@ -65,7 +66,7 @@ public class RequestTracker {
     while(run){
       try {
         System.out.print(prompt);
-        line = reader.readLine().toUpperCase();
+        line = reader.readLine();
         if (!parse(line)){
           System.out.println(error + "Invalid command. Type help for command options.");
         }
@@ -78,42 +79,76 @@ public class RequestTracker {
   }
 
   private static boolean parse(String line){
-    line = line.stripLeading();
-    String command = line.split(" ")[0];
+    List<String> args = null;
+
+    try{
+      args = splitArgs(line);
+    } catch (Exception e){
+      System.out.println(error + "Could not parse buffer");
+      System.out.println(error + "Debug Log: " + e.getMessage());
+      return false;
+    }
+
+    if (args.isEmpty()){ //line skip
+      return true;
+    }
+
+    String command = args.get(0);
+    args.remove(0);
 
     if (command.equalsIgnoreCase("help")){
       showHelp();
       return true;
-    } else if (line.equals("")){
-      return true;
-    }else if (command.equalsIgnoreCase("exit")){
+    } else if (command.equalsIgnoreCase("exit")){
       run = false;
       return true;
     }
 
     if (command.equalsIgnoreCase("display")){
-      showGraph(line.split(" ")[1].toLowerCase());
+      showGraph(args);
       return true;
     }
 
     if (command.equalsIgnoreCase("request")) {
-      String args = line.substring(command.length() + 2);
       return request(args);
     }
 
     if (command.equalsIgnoreCase("solve")){
-      String args = line.substring(command.length() + 1);
       return solve(args);
     }
-    System.out.println(line);
+
     return false;
   }
 
-  private static boolean solve(String args){
+  private static List<String> splitArgs(String args){
+    List<String> argParts = new ArrayList<>();
+
+    while (args.length() > 0){
+      args = args.strip();
+      if (args.startsWith("\"")){
+        args = args.substring(1);
+        String text = args.substring(0,args.indexOf("\""));
+        argParts.add(text);
+        args = args.substring(args.indexOf("\"")+1);
+      } else{
+        String arg = args.split(" ")[0];
+        argParts.add(arg);
+        args = args.substring(arg.length());
+      }
+    }
+
+    return argParts;
+  }
+
+  private static boolean solve(List<String> args){
     RequestNode request = null;
     int id = 0;
+    if (args.size() < 2){
+      System.out.println(error + "Please provide a solution to the request.");
+      return false;
+    }
     try{
-      id = Integer.parseInt(args.split(" ")[0]);
+      id = Integer.parseInt(args.get(0));
     }catch (Exception e){
       System.out.println(error + "ID could not be parsed.");
       return false;
@@ -129,33 +164,29 @@ public class RequestTracker {
       return false;
     }
 
-    String solution = args.substring(args.indexOf("\"")+1).stripTrailing();
-    solution = solution.substring(0,solution.length()-1);
-
-    requestGraph.resolveRequest(request,solution);
-    System.out.println(success + request + "\n" + success + "Marked as solved with solution: " + solution);
+    requestGraph.resolveRequest(request,args.get(1));
+    System.out.println(success + request + "\n" + success + "Marked as solved with solution: " + args.get(1));
 
     return true;
   }
 
-  private static boolean request(@NotNull String args){
-    String query = args.substring(0, args.indexOf("\""));
+  private static boolean request(List<String> args) {
+    String query = args.get(0);
 
-    args = args.substring(1);
-    String[] otherArgs = args.substring(args.indexOf("\"") + 2).split(" ");
-    try{
-      Team requestee = Team.valueOf(otherArgs[0]);
-    } catch(Exception e){
+    Team requestee;
+    try {
+      requestee = Team.valueOf(args.get(1).toUpperCase());
+    } catch (Exception e) {
       System.out.println(error + "Invalid Team.");
       return false;
     }
-    RequestBuilder newRequest = ANewRequest(user, Team.valueOf(otherArgs[0]))
+    RequestBuilder newRequest = ANewRequest(user, requestee)
         .inGraph(requestGraph)
         .withQuery(query);
 
     try {
-      if (otherArgs.length > 1) {
-        newRequest.toSolve(requestGraph.findRequest(Integer.parseInt(otherArgs[1])));
+      if (args.size() >= 3) {
+        newRequest.toSolve(requestGraph.findRequest(Integer.parseInt(args.get(2))));
       }
     } catch (Exception e) {
       System.out.println(
@@ -181,16 +212,37 @@ public class RequestTracker {
     System.out.println(success + "Saved and exited.");
   }
 
-  private static void showGraph(@NotNull String type) {
+  private static void showGraph(List<String> args) {
+    String type = args.get(0);
     ArrayList<RequestNode> outputs = null;
-    if (type.equals("all")){
+
+    if (type.equalsIgnoreCase("search")){ //search case
+      if (args.size() <= 1){ //no search phrase
+        System.out.println(error + "Provide a search term.");
+      } else{
+
+        outputs = requestGraph.findRequests(args.get(1));
+
+        if (outputs == null || outputs.isEmpty()){
+          System.out.println(error + "No matches found.\n");
+        } else{
+          for (RequestNode request : outputs) {
+            System.out.println(request + "\n");
+          }
+        }
+      }
+    }
+
+    else if (type.equalsIgnoreCase("all")){ //whole graph case
       System.out.println(success + "All unresolved requests:\n");
       if (requestGraph.isEmpty()){
         System.out.println(success + "Wow! There seems to be no requests to solve! This is either really good, or I've messed up and we've lost our data... fingers crossed");
       }else{
         System.out.println(requestGraph);
       }
-    } else{
+    }
+
+    else{ //other cases
       try{
         int id = Integer.parseInt(type);
         System.out.println(success + "Request #"+id+":");
@@ -201,7 +253,7 @@ public class RequestTracker {
         System.out.println(requestGraph.findRequest(id));
         }
       } catch (Exception e) {
-        switch (type) {
+        switch (type.toLowerCase()) {
           case "sent" -> {
             System.out.println(success + "All unresolved requests sent by you:\n");
             outputs = requestGraph.findRequests(RequestDirection.FROM, user);
@@ -225,6 +277,7 @@ public class RequestTracker {
         }
       }
     }
+
   }
 
   private static void showHelp(){
@@ -261,19 +314,23 @@ public class RequestTracker {
                  e.g. solve 3 "The diameter is 1m. CAD model here: *some teams link*. Thanks"
                  
                  
-        display <type>
+        display <type> <(if type is search) search phrase>
              - Shows the current request graph
-                 type: One of [sent, pending, all, immediate, *ID*]
+                 type: One of [sent, pending, all, immediate, *ID*, search]
                         sent      - displays queries that you are waiting on responses from
                         pending   - displays queries you have yet to solve
                         all       - displays all unsolved requests
                         immediate - displays all unsolved requests, that can be solved right now!
                                     (i.e. they have no dependant requests they are waiting for)
                         ID        - displays the request with ID entered
+                        search    - searches for string provided in double quotes
                         
                  e.g. display immediate
                  e.g. display 67
-                 e.g. display pending
+                 e.g. display search "CPU"
+        
+        UNDER DEVELOPMENT: display-h which does the same as display but with historical request as well
+        
         """, info, Arrays.toString(Team.values()));
   }
 }

@@ -176,7 +176,7 @@ public class RequestGraph {
       String keywords,
       Set<RequestNode> currentMatches) {
 
-    if (requestToCheck.getDetails().toLowerCase().contains(keywords)){ // current request contains key phrase
+    if (requestToCheck.getDetails().toLowerCase().contains(keywords)){ // current request contains key phrase TODO: replace with a call to match percentage and check if its above 1
       currentMatches.add(requestToCheck);
     }
     if (requestToCheck.isTip()){ // no more branches to search here

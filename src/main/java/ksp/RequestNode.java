@@ -224,6 +224,21 @@ public class RequestNode {
     }
   }
 
+  /**
+   * Returns an int from 0-100 based on how much the string entered
+   * matches the details of this request.
+   *
+   * 0: No words in the searchPhrase match
+   * 100: All words in the search phrase are present in this request description
+   *
+   * @param searchPhrase New branch to add to this Request Node
+   */
+  public int matchPercentage(String searchPhrase){
+    return 0; //TODO
+  }
+
+
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
