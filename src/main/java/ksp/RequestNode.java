@@ -12,7 +12,7 @@ import ksp.utilities.IDGenerator;
 import ksp.utilities.Team;
 import org.jetbrains.annotations.NotNull;
 
-public class RequestNode {
+public class RequestNode{
   private final Team requester;
   private Team requestee;
   private String details;
@@ -90,7 +90,7 @@ public class RequestNode {
 
   protected void setDetails(String details) {
     this.details = details;
-  }
+  } //TODO:add edit function
 
   /**
    *  Removes a request node from the dependency graph. If the node is not a tip, then all
@@ -228,16 +228,21 @@ public class RequestNode {
    * Returns an int from 0-100 based on how much the string entered
    * matches the details of this request.
    *
-   * 0: No words in the searchPhrase match
-   * 100: All words in the search phrase are present in this request description
+   * 0   : No words in the searchPhrase match
+   * 100 : All words in the search phrase are present in this request description
    *
-   * @param searchPhrase New branch to add to this Request Node
+   * @param searchPhrase The string to check match on
    */
-  public int matchPercentage(String searchPhrase){
-    return 0; //TODO
+  public Integer matchPercentage(String searchPhrase){
+    String[] words = searchPhrase.toLowerCase().split(" ");
+    int matches = 0;
+    for (String word:words){
+      if (details.toLowerCase().contains(word)){
+        matches ++;
+      }
+    }
+    return (100 * matches)/words.length;
   }
-
-
 
   @Override
   public boolean equals(Object o) {

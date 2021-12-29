@@ -13,7 +13,10 @@ import com.google.cloud.storage.StorageOptions;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import ksp.utilities.IDGenerator;
 import ksp.utilities.RequestDirection;
@@ -116,7 +119,12 @@ public class RequestGraph {
     for (RequestNode root : rootRequests) {
       output.addAll(findKeyWordsSearch(root,keywords.toLowerCase(),new HashSet<>()));
     }
-    return new ArrayList<>(output);
+    Comparator<RequestNode> compareByMatch = Comparator.comparing(
+        (RequestNode o) -> o.matchPercentage(keywords));
+    ArrayList<RequestNode> listOut = new ArrayList<>(output);
+    listOut.sort(compareByMatch);
+    Collections.reverse(listOut);
+    return listOut;
   }
 
 
@@ -176,7 +184,7 @@ public class RequestGraph {
       String keywords,
       Set<RequestNode> currentMatches) {
 
-    if (requestToCheck.getDetails().toLowerCase().contains(keywords)){ // current request contains key phrase TODO: replace with a call to match percentage and check if its above 1
+    if (requestToCheck.matchPercentage(keywords)>0){ // current request contains key phrase
       currentMatches.add(requestToCheck);
     }
     if (requestToCheck.isTip()){ // no more branches to search here

@@ -12,7 +12,6 @@ import ksp.exceptions.IllegalRequestException;
 import ksp.utilities.IDGenerator;
 import ksp.utilities.RequestDirection;
 import ksp.utilities.Team;
-import org.jetbrains.annotations.NotNull;
 
 public class RequestTracker {
   static Team user;
@@ -226,6 +225,7 @@ public class RequestTracker {
         if (outputs == null || outputs.isEmpty()){
           System.out.println(error + "No matches found.\n");
         } else{
+          System.out.println(success + "All matching requests, in order of relevance:\n");
           for (RequestNode request : outputs) {
             System.out.println(request + "\n");
           }
