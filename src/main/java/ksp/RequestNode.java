@@ -4,6 +4,7 @@
 
 package ksp;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -12,7 +13,7 @@ import ksp.utilities.IDGenerator;
 import ksp.utilities.Team;
 import org.jetbrains.annotations.NotNull;
 
-public class RequestNode{
+public class RequestNode implements Serializable {
   private final Team requester;
   private Team requestee;
   private String details;

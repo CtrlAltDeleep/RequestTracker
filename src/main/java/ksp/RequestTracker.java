@@ -55,8 +55,7 @@ public class RequestTracker {
     System.out.println(success + "Session team assigned: " + name);
     //TODO: take user credentials for retrieving the graph and metadata
     System.out.println(info + "Loading requests and metadata.... ");
-    requestGraph = new RequestGraph(new ArrayList<>());
-    boolean successfulIDGenCreation = IDGenerator.init(0);
+    requestGraph = new RequestGraph();
     System.out.println(success + "Initialised.");
     System.out.println(info + "Entering console mode...");
     System.out.println(info + "Type \"help\" to show options.");
@@ -195,6 +194,7 @@ public class RequestTracker {
     RequestNode node;
     try {
       node = newRequest.build();
+      requestGraph.addNewRequest(node);
     } catch (IllegalRequestException e) {
       System.out.println(e.getMessage());
       return false;
@@ -207,7 +207,8 @@ public class RequestTracker {
 
   private static void exit() {
     System.out.println(info + "Saving Requests and metadata...");
-    //TODO:save
+    requestGraph.saveMetadata();
+    requestGraph.saveData();
     System.out.println(success + "Saved and exited.");
   }
 

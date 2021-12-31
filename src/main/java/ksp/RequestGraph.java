@@ -4,21 +4,25 @@
 
 package ksp;
 
-import com.google.auth.Credentials;
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.BucketInfo;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
+import static ksp.RequestTracker.error;
+
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
+import ksp.utilities.ArchiveNode;
 import ksp.utilities.IDGenerator;
+import ksp.utilities.Metadata;
 import ksp.utilities.RequestDirection;
 import ksp.utilities.Team;
 
@@ -26,45 +30,178 @@ import ksp.utilities.Team;
 
 public class RequestGraph {
   private static ArrayList<RequestNode> rootRequests;
+  private static ArrayList<ArchiveNode> archive;
+
+  private static final String graphBucketPath = "save-data/request-graph-bucket.log";
+  private static final String archiveBucketPath = "save-data/request-archive-bucket.log";
+  private static final String metadataBucketPath = "save-data/metadata-bucket.log";
+
+
 
   public RequestGraph(ArrayList<RequestNode> rootRequests) {
     RequestGraph.rootRequests = rootRequests;
+    RequestGraph.archive = new ArrayList<>();
     IDGenerator.init(0);
   }
 
-  public RequestGraph(String path) {
-    rootRequests = readDataFromPath(path);
-    IDGenerator.init(0); //TODO: replace with int read from file
+  public RequestGraph() {
+    rootRequests = readData();
+    archive = readArchiveData();
+    Metadata metadata = readMetadata();
+    IDGenerator.init(metadata.idGenState());
   }
 
-  public ArrayList<RequestNode> readDataFromPath(String credentialsPath) {
-
-    if (credentialsPath == null) {
-      credentialsPath = System.getProperty("user.dir") + "/ksp-request-tracker-8291299f282f.json";
+  public ArrayList<RequestNode> readData() {
+    if (!ensureBucketsExist()){
+      return new ArrayList<>();
     }
 
-    Credentials credentials = null;
+
     try {
-      credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsPath));
+      FileInputStream graphFileStream = new FileInputStream(graphBucketPath);
+      ObjectInputStream graphObjStream = new ObjectInputStream(graphFileStream);
+
+      @SuppressWarnings("unchecked")
+      ArrayList<RequestNode> graph = (ArrayList<RequestNode>) graphObjStream.readObject();
+
+      graphObjStream.close();
+      graphFileStream.close();
+      return graph;
+    } catch (Exception e) {
+      System.out.println(error + "An error occurred reading graph save file.");
+    }
+
+    return new ArrayList<>();
+  }
+
+  public ArrayList<ArchiveNode> readArchiveData() {
+    if (!ensureBucketsExist()){
+      return new ArrayList<>();
+    }
+
+    try {
+      FileInputStream archiveFileStream = new FileInputStream(archiveBucketPath);
+      ObjectInputStream archiveObjStream = new ObjectInputStream(archiveFileStream);
+
+      @SuppressWarnings("unchecked")
+      ArrayList<ArchiveNode> archive = (ArrayList<ArchiveNode>) archiveObjStream.readObject();
+
+      archiveObjStream.close();
+      archiveFileStream.close();
+      return archive;
+    } catch (Exception e) {
+      System.out.println(error + "An error occurred reading archive data.");
+    }
+
+    return new ArrayList<>();
+  }
+
+  public Metadata readMetadata() {
+    if (!ensureBucketsExist()){
+      return new Metadata();
+    }
+
+    try {
+      FileInputStream metadataFileStream = new FileInputStream(metadataBucketPath);
+      ObjectInputStream metadataObjStream = new ObjectInputStream(metadataFileStream);
+
+      Metadata metadata = (Metadata) metadataObjStream.readObject();
+
+      metadataObjStream.close();
+      metadataFileStream.close();
+      return metadata;
+    } catch (Exception e) {
+      System.out.println(error + "An error occurred reading archive data.");
+    }
+
+    return new Metadata();
+  }
+
+  public boolean saveData() {
+    if (!ensureBucketsExist()){
+      return false;
+    }
+
+    try {
+      FileOutputStream graphFileStream = new FileOutputStream(graphBucketPath,false);
+      ObjectOutputStream graphObjStream = new ObjectOutputStream(graphFileStream);
+
+      graphObjStream.writeObject(rootRequests);
+
+      graphObjStream.close();
+      graphFileStream.close();
+
     } catch (IOException e) {
+      System.out.println(error + "An error occurred when saving graph.");
       e.printStackTrace();
     }
-    Storage storage =
-        StorageOptions.newBuilder()
-            .setCredentials(credentials)
-            .setProjectId("ksp-request-tracker\n")
-            .build()
-            .getService();
 
-    Bucket bucket = storage.create(BucketInfo.of("ksp-request-node-bucket"));
-
-    // TODO: also set IDgen state
-    return null;
+    return true;
   }
 
-  public boolean saveDataToPath(String path) {
-    // TODO: traverse graph and save
-    return false;
+  public boolean saveArchiveData() {
+    if (!ensureBucketsExist()){
+      return false;
+    }
+
+    try {
+      FileOutputStream archiveFileStream = new FileOutputStream(archiveBucketPath,false);
+      ObjectOutputStream archiveObjStream = new ObjectOutputStream(archiveFileStream);
+
+      archiveObjStream.writeObject(archive);
+
+      archiveObjStream.close();
+      archiveFileStream.close();
+    } catch (IOException e) {
+      System.out.println(error + "An error occurred when updating archive.");
+      e.printStackTrace();
+    }
+
+    return saveData();
+  }
+
+  public boolean saveMetadata() {
+    if (!ensureBucketsExist()){
+      return false;
+    }
+
+    try {
+      FileOutputStream metadataFileStream = new FileOutputStream(metadataBucketPath,false);
+      ObjectOutputStream metadataObjStream = new ObjectOutputStream(metadataFileStream);
+
+      Metadata metadata = new Metadata(IDGenerator.saveState());
+      metadataObjStream.writeObject(metadata);
+
+      metadataObjStream.close();
+      metadataFileStream.close();
+    } catch (IOException e) {
+      System.out.println(error + "An error occurred when saving Metadata.");
+      e.printStackTrace();
+    }
+
+    return saveData();
+  }
+
+  private boolean ensureBucketsExist(){
+    try {
+      File graphBucket = new File(graphBucketPath);
+      File historyBucket = new File(archiveBucketPath);
+      File metadataBucket = new File(metadataBucketPath);
+
+      if (graphBucket.createNewFile()){
+        System.out.println(error + "Application could not locate current graph state.");
+      }
+      if (historyBucket.createNewFile()){
+        System.out.println(error + "Application could not locate request history.");
+      }
+      if (metadataBucket.createNewFile()){
+        System.out.println(error + "Application could not locate metadata.");
+      }
+    } catch (IOException e) {
+      System.out.println(error + "An error occurred when finding save files.");
+      return false;
+    }
+    return true;
   }
 
   protected void removeRoot(RequestNode request) {
@@ -76,16 +213,14 @@ public class RequestGraph {
   }
 
   public boolean addNewRequest(RequestNode newRequest) {
-    //TODO saveDataToPath();
-    return true;
+    saveMetadata();
+    return saveData();
   }
 
   public boolean resolveRequest(RequestNode request, String solution){
     request.removeRequest(this);
-
-    // TODO saveDataToPath();
-    // TODO save solution and solved request to archive log
-    return true;
+    archive.add(new ArchiveNode(request,solution));
+    return saveArchiveData();
   }
 
   public RequestNode findRequest(int id){
