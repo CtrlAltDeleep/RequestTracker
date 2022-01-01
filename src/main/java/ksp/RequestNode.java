@@ -4,6 +4,8 @@
 
 package ksp;
 
+import static ksp.utilities.Search.stringMatchPercentage;
+
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
@@ -235,14 +237,7 @@ public class RequestNode implements Serializable {
    * @param searchPhrase The string to check match on
    */
   public Integer matchPercentage(String searchPhrase){
-    String[] words = searchPhrase.toLowerCase().split(" ");
-    int matches = 0;
-    for (String word:words){
-      if (details.toLowerCase().contains(word)){
-        matches ++;
-      }
-    }
-    return (100 * matches)/words.length;
+    return stringMatchPercentage(details,searchPhrase);
   }
 
   @Override

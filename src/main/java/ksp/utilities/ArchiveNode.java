@@ -6,6 +6,8 @@ import ksp.RequestNode;
 public record ArchiveNode(RequestNode archivedNode, String solution) implements Serializable {
   @Override
   public String toString() {
-    return archivedNode.toString() + "\nSolution: "+solution;
+    return """
+  %s
+  Solution: %s""".formatted(archivedNode.toString(),solution);
   }
 }

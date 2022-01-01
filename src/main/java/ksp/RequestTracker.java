@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import ksp.exceptions.IllegalRequestException;
-import ksp.utilities.IDGenerator;
+import ksp.utilities.ArchiveNode;
 import ksp.utilities.RequestDirection;
 import ksp.utilities.Team;
 
@@ -20,6 +20,10 @@ public class RequestTracker {
   static String success = "✅️   ";
   static String info = "❕   ";
   static String prompt = ">>>   ";
+  static String adminAction = "🔥   ";
+  static String spacer = "     ";
+
+
   static RequestGraph requestGraph;
   static boolean run = true;
 
@@ -99,6 +103,9 @@ public class RequestTracker {
       return true;
     } else if (command.equalsIgnoreCase("exit")){
       run = false;
+      return true;
+    } else if (command.equalsIgnoreCase("clear")){
+      clear(args);
       return true;
     }
 
@@ -212,34 +219,100 @@ public class RequestTracker {
     System.out.println(success + "Saved and exited.");
   }
 
+  private static void clear(List<String> args) {
+    if (args.get(0).equalsIgnoreCase("all")){
+      System.out.println(adminAction + "Admin clear live graph save state, metadata and archive");
+      requestGraph.clearGraph();
+      requestGraph.clearArchive();
+      requestGraph.clearMetadata();
+      return;
+    } else if (args.get(0).equalsIgnoreCase("archive")){
+      System.out.println(adminAction + "Admin clear archive");
+      requestGraph.clearArchive();
+      return;
+    } else if (args.get(0).equalsIgnoreCase("graph")){
+      System.out.println(adminAction + "Admin clear live graph save state and metadata");
+      requestGraph.clearGraph();
+      requestGraph.clearMetadata();
+      return;
+    }
+
+    System.out.println(error + "Invalid command - do not invoke admin commands");
+  }
+
   private static void showGraph(List<String> args) {
     String type = args.get(0);
-    ArrayList<RequestNode> outputs = null;
+    ArrayList<RequestNode> graphOutputs = null;
+    ArrayList<ArchiveNode> archiveOutputs = null;
 
-    if (type.equalsIgnoreCase("search")){ //search case
+
+    if (type.equalsIgnoreCase("search")){ //search live graph case
       if (args.size() <= 1){ //no search phrase
         System.out.println(error + "Provide a search term.");
       } else{
 
-        outputs = requestGraph.findRequests(args.get(1));
+        graphOutputs = requestGraph.findRequests(args.get(1));
 
-        if (outputs == null || outputs.isEmpty()){
-          System.out.println(error + "No matches found.\n");
+        if (graphOutputs == null || graphOutputs.isEmpty()){
+          System.out.println(error + "No matches found. Try searching archived requests.\n");
         } else{
           System.out.println(success + "All matching requests, in order of relevance:\n");
-          for (RequestNode request : outputs) {
+          for (RequestNode request : graphOutputs) {
             System.out.println(request + "\n");
           }
         }
       }
     }
 
-    else if (type.equalsIgnoreCase("all")){ //whole graph case
+    else if (type.equalsIgnoreCase("search-a")){ //search archive case
+      if (args.size() <= 1){ //no search phrase
+        System.out.println(error + "Provide a search term.");
+      } else{
+
+        archiveOutputs = requestGraph.findInArchivedRequests(args.get(1));
+        ArrayList<ArchiveNode> archiveSolutionOutputs = requestGraph.findInArchivedSolutions(args.get(1));
+
+        if ((archiveOutputs == null || archiveOutputs.isEmpty())
+            && (archiveSolutionOutputs == null || archiveSolutionOutputs.isEmpty())){
+          System.out.println(error + "No matches found. Try searching live requests.\n");
+        } else{
+          if (archiveOutputs == null || archiveOutputs.isEmpty()){
+            System.out.println(error + "No matches in archived request queries found.\n");
+          } else{
+            System.out.println(success + "All matching archived request queries, in order of relevance:\n");
+            for (ArchiveNode request : archiveOutputs) {
+              System.out.println(request + "\n");
+            }
+          }
+
+          if (archiveSolutionOutputs == null || archiveSolutionOutputs.isEmpty()){
+            System.out.println(error + "No matches in archived request solutions found.\n");
+          } else{
+            System.out.println(success + "All matching archived request solutions, in order of relevance:\n");
+            for (ArchiveNode request : archiveSolutionOutputs) {
+              System.out.println(request + "\n");
+            }
+          }
+
+        }
+      }
+    }
+
+    else if (type.equalsIgnoreCase("live")){ //whole graph case
       System.out.println(success + "All unresolved requests:\n");
-      if (requestGraph.isEmpty()){
+      if (requestGraph.graphIsEmpty()){
         System.out.println(success + "Wow! There seems to be no requests to solve! This is either really good, or I've messed up and we've lost our data... fingers crossed");
       }else{
         System.out.println(requestGraph);
+      }
+    }
+
+    else if (type.equalsIgnoreCase("archive")){ //archive case
+      System.out.println(success + "All resolved requests:\n");
+      if (requestGraph.archiveIsEmpty()){
+        System.out.println(error + "It seems like we haven't solved anything yet :/");
+      }else{
+        System.out.println(requestGraph.archiveToString());
       }
     }
 
@@ -248,34 +321,65 @@ public class RequestTracker {
         int id = Integer.parseInt(type);
         System.out.println(success + "Request #"+id+":");
         RequestNode out = requestGraph.findRequest(id);
-        if (out == null){
-          System.out.println(error + "No matches found. For Request #" + id + "\n");
-        } else {
-        System.out.println(requestGraph.findRequest(id));
+        ArchiveNode archiveOut = requestGraph.findArchivedRequest(id);
+        if ((out == null) && (archiveOut == null)){
+          System.out.println(error + "No request found for Request #" + id);
+        } else if (out == null){
+          System.out.println(success + "[SOLVED] " + archiveOut.archivedNode()
+              + "\n" + spacer + "Solution: " + archiveOut.solution());
+        } else{
+          System.out.println(success + out);
         }
       } catch (Exception e) {
         switch (type.toLowerCase()) {
           case "sent" -> {
             System.out.println(success + "All unresolved requests sent by you:\n");
-            outputs = requestGraph.findRequests(RequestDirection.FROM, user);
+            graphOutputs = requestGraph.findRequests(RequestDirection.FROM, user);
           }
-          case "pending" -> {
+          case "sent-a", "answered" -> {
+            System.out.println(success + "All resolved requests sent by you:\n");
+            archiveOutputs = requestGraph.findArchivedRequests(RequestDirection.FROM, user);
+          }
+          case "received" -> {
             System.out.println(success + "All requests you still need to solve:\n");
-            outputs = requestGraph.findRequests(RequestDirection.TO, user);
+            graphOutputs = requestGraph.findRequests(RequestDirection.TO, user);
+          }
+          case "received-a","solved" -> {
+            System.out.println(success + "All requests you have solved:\n");
+            archiveOutputs = requestGraph.findArchivedRequests(RequestDirection.TO, user);
           }
           case "immediate" -> {
             System.out.println(success + "All requests that can be solved right now:\n");
-            outputs = requestGraph.getImmediateProblems();
+            graphOutputs = requestGraph.getImmediateProblems();
+          }
+          default -> {
+            System.out.println(error + "Invalid Display type.");
+            return;
           }
         }
 
-        if (outputs == null || outputs.isEmpty()){
-          System.out.println(error + "No matches found.\n");
-        } else{
-          for (RequestNode request : outputs) {
-            System.out.println(request + "\n");
+        switch (type.toLowerCase()) { //printing outputs
+          case "sent-a", "answered","received-a","solved" -> { //archive outputs
+            if (archiveOutputs == null || archiveOutputs.isEmpty()){
+              System.out.println(error + "No matches found.\n");
+            } else{
+              for (ArchiveNode request : archiveOutputs) {
+                System.out.println(request + "\n");
+              }
+            }
+          }
+          default -> { // graph output
+            if (graphOutputs == null || graphOutputs.isEmpty()){
+              System.out.println(error + "No matches found.\n");
+            } else{
+              for (RequestNode request : graphOutputs) {
+                System.out.println(request + "\n");
+              }
+            }
           }
         }
+
+
       }
     }
 
@@ -317,21 +421,35 @@ public class RequestTracker {
                  
         display <type> <(if type is search) search phrase>
              - Shows the current request graph
-                 type: One of [sent, pending, all, immediate, *ID*, search]
-                        sent      - displays queries that you are waiting on responses from
-                        pending   - displays queries you have yet to solve
-                        all       - displays all unsolved requests
-                        immediate - displays all unsolved requests, that can be solved right now!
-                                    (i.e. they have no dependant requests they are waiting for)
-                        ID        - displays the request with ID entered
-                        search    - searches for string provided in double quotes
+                 type: One of:
+                        sent       - displays queries that you are waiting on responses from
+                        sent-a     - displays queries that you sent and have been solved
+                        answered   - displays queries that you sent and have been solved
                         
-                 e.g. display immediate
-                 e.g. display 67
+                        received   - displays queries you have yet to solve
+                        received-a - displays queries that you have solved
+                        solved     - displays queries that you have solved
+                        
+                        live        - displays all unsolved requests
+                        archive    - displays all solved requests
+                        
+                        immediate  - displays all unsolved requests, that can be solved right now!
+                                    (i.e. they have no dependant requests they are waiting for)
+                                    
+                        *ID*       - displays the request with ID entered (even if its archived)
+                        
+                        search     - searches for string provided in double quotes in unsolved requests
+                        search-a   - searches for string provided in double quotes in archive
+                        
                  e.g. display search "CPU"
+                 e.g. display 67
+                 e.g. display search-a "CPU"
         
-        UNDER DEVELOPMENT: display-h which does the same as display but with historical request as well
-        
+        *******************   DEV USE ONLY:
+        clear all - wipes metadata, archive and live request graph.
+        clear archive - wipes archive.
+        clear graph - wipes live request graph and metadata.
+       
         """, info, Arrays.toString(Team.values()));
   }
 }

@@ -4,13 +4,13 @@
 
 package ksp;
 
+import static ksp.utilities.Search.stringMatchPercentage;
+import static java.util.stream.Collectors.toSet;
 import static ksp.RequestTracker.error;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -18,14 +18,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Scanner;
+import java.util.List;
 import java.util.Set;
 import ksp.utilities.ArchiveNode;
 import ksp.utilities.IDGenerator;
 import ksp.utilities.Metadata;
 import ksp.utilities.RequestDirection;
 import ksp.utilities.Team;
-
+import org.jetbrains.annotations.NotNull;
 
 
 public class RequestGraph {
@@ -233,6 +233,15 @@ public class RequestGraph {
     return null;
   }
 
+  public ArchiveNode findArchivedRequest(int id){
+    for (ArchiveNode request : archive){
+      if (request.archivedNode().getID() == id){
+        return request;
+      }
+    }
+    return null;
+  }
+
   public ArrayList<RequestNode> findRequests(RequestDirection direction, Team team){
     Set<RequestNode> output = new HashSet<>();
     if (direction == RequestDirection.FROM){
@@ -245,6 +254,18 @@ public class RequestGraph {
       for (RequestNode root : rootRequests) {
         output.addAll(findRequestsRequesteeSearch(root,team,new HashSet<>()));
       }
+    }
+    return new ArrayList<>(output);
+  }
+
+  public ArrayList<ArchiveNode> findArchivedRequests(RequestDirection direction, Team team){
+    Set<ArchiveNode> output;
+    if (direction == RequestDirection.FROM){
+      // find requests that this team made / are the requester for
+      output = archive.stream().filter(x -> x.archivedNode().getRequester()==team).collect(toSet());
+    } else{
+      // find requests that want info from this team / are the requestee in
+      output = archive.stream().filter(x -> x.archivedNode().getRequestee()==team).collect(toSet());
     }
     return new ArrayList<>(output);
   }
@@ -262,6 +283,30 @@ public class RequestGraph {
     return listOut;
   }
 
+  public ArrayList<ArchiveNode> findInArchivedRequests(String keywords){
+    Set<ArchiveNode> output;
+    output = archive.stream().filter(x -> x.archivedNode().matchPercentage(keywords)>0).collect(toSet());
+
+    return sortArchiveNodes(keywords, output);
+  }
+
+  public ArrayList<ArchiveNode> findInArchivedSolutions(String keywords){
+    Set<ArchiveNode> output;
+    output = archive.stream().filter(x -> stringMatchPercentage(x.solution(),keywords)>0).collect(toSet());
+
+    return sortArchiveNodes(keywords, output);
+  }
+
+  @NotNull
+  private ArrayList<ArchiveNode> sortArchiveNodes(String keywords, Set<ArchiveNode> output) {
+    Comparator<ArchiveNode> compareByMatch = Comparator.comparing(
+        (ArchiveNode o) -> o.archivedNode().matchPercentage(keywords));
+
+    ArrayList<ArchiveNode> listOut = new ArrayList<>(output);
+    listOut.sort(compareByMatch);
+    Collections.reverse(listOut);
+    return listOut;
+  }
 
   private RequestNode findRequestIDSearch(RequestNode requestToCheck, int id) {
     if (requestToCheck.getID() == id){ // current request matches
@@ -355,8 +400,30 @@ public class RequestGraph {
     return currentMatches;
   }
 
-  public boolean isEmpty(){
+  public boolean graphIsEmpty(){
     return rootRequests.isEmpty();
+  }
+  public boolean archiveIsEmpty() {
+    return archive.isEmpty();
+  }
+
+  public List<ArchiveNode> getArchive(){
+    return archive;
+  }
+
+  public void clearArchive(){
+    archive = new ArrayList<>();
+    saveArchiveData();
+  }
+
+  public void clearGraph(){
+    rootRequests = new ArrayList<>();
+    saveData();
+  }
+
+  public void clearMetadata(){
+    IDGenerator.init(0);
+    saveMetadata();
   }
 
   @Override
@@ -369,5 +436,16 @@ public class RequestGraph {
      output.deleteCharAt(output.length() - 1);
      } catch (Exception ignored){}
      return output.toString();
+  }
+
+  public String archiveToString() {
+    StringBuilder output = new StringBuilder();
+    for (ArchiveNode arch :archive){
+      output.append(arch.toString()).append("\n\n");
+    }
+    try{
+      output.deleteCharAt(output.length() - 1);
+    } catch (Exception ignored){}
+    return output.toString();
   }
 }
