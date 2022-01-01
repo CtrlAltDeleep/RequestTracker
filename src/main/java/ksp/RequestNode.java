@@ -4,7 +4,7 @@
 
 package ksp;
 
-import static ksp.utilities.Search.stringMatchPercentage;
+import static ksp.utilities.SearchUtilities.stringMatchPercentage;
 
 import java.io.Serializable;
 import java.util.LinkedList;

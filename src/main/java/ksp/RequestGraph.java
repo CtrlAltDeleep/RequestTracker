@@ -4,7 +4,7 @@
 
 package ksp;
 
-import static ksp.utilities.Search.stringMatchPercentage;
+import static ksp.utilities.SearchUtilities.stringMatchPercentage;
 import static java.util.stream.Collectors.toSet;
 import static ksp.RequestTracker.error;
 
@@ -32,9 +32,9 @@ public class RequestGraph {
   private static ArrayList<RequestNode> rootRequests;
   private static ArrayList<ArchiveNode> archive;
 
-  private static final String graphBucketPath = "save-data/request-graph-bucket.log";
-  private static final String archiveBucketPath = "save-data/request-archive-bucket.log";
-  private static final String metadataBucketPath = "save-data/metadata-bucket.log";
+  private static final String graphBucketPath = "save-data/request-graph-bucket.data";
+  private static final String archiveBucketPath = "save-data/request-archive-bucket.data";
+  private static final String metadataBucketPath = "save-data/metadata-bucket.data";
 
 
 

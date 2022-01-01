@@ -1,6 +1,7 @@
 package ksp;
 
 import static ksp.RequestBuilder.ANewRequest;
+import static ksp.utilities.InterfaceUtilities.askYN;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -167,6 +168,13 @@ public class RequestTracker {
     if (request == null){
       System.out.println(error + "Request with ID #" + id + " not found.");
       return false;
+    }
+
+    if (request.getRequestee() != user){
+      System.out.println(error + "Request with ID #" + id + " is not for your team. Only solve it if you think you are better suited to answer.");
+      if (!askYN(input +"Would you still like to continue? ")){
+        return false;
+      }
     }
 
     requestGraph.resolveRequest(request,args.get(1));

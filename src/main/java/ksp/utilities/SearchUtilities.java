@@ -1,6 +1,6 @@
 package ksp.utilities;
 
-public class Search {
+public class SearchUtilities {
 
   public static Integer stringMatchPercentage(String stringToSearch, String searchPhrase){
     String[] words = searchPhrase.toLowerCase().split(" ");
