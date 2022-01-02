@@ -1,5 +1,7 @@
 package ksp;
 
+import ksp.utilities.Team;
+
 public interface MailHandlerInterface {
-  boolean send( String sender, String password, String recipient, String message);
+  void send(Team sender, String password, Team recipient, String message);
 }

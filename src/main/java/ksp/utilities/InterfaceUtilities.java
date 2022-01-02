@@ -21,4 +21,20 @@ public class InterfaceUtilities {
       } catch (Exception ignored) {}
     }
   }
+
+  public static String getAns(String question){
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+    boolean cont = false;
+    String ans = null;
+    while (!cont) {
+      System.out.print(question);
+      try {
+        ans = reader.readLine().strip();
+        cont = true;
+      } catch (Exception ignored) {}
+    }
+
+    return ans;
+  }
 }

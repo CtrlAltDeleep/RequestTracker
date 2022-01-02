@@ -21,6 +21,7 @@ public class RequestTracker {
   static String success = "✅️   ";
   static String info = "❕   ";
   static String prompt = ">>>   ";
+  static String email = "✉️   ";
   static String adminAction = "🔥   ";
   static String spacer = "     ";
 
@@ -228,24 +229,28 @@ public class RequestTracker {
   }
 
   private static void clear(List<String> args) {
+    if (!askYN(adminAction + "You have triggered an admin command to wipe save data! Are you sure you want to continue?")){
+      System.out.println(info + "No changes were made.");
+      return;
+    }
     if (args.get(0).equalsIgnoreCase("all")){
-      System.out.println(adminAction + "Admin clear live graph save state, metadata and archive");
+      System.out.println(adminAction + "Admin clear live graph save state, metadata and archive.");
       requestGraph.clearGraph();
       requestGraph.clearArchive();
       requestGraph.clearMetadata();
       return;
     } else if (args.get(0).equalsIgnoreCase("archive")){
-      System.out.println(adminAction + "Admin clear archive");
+      System.out.println(adminAction + "Admin clear archive.");
       requestGraph.clearArchive();
       return;
     } else if (args.get(0).equalsIgnoreCase("graph")){
-      System.out.println(adminAction + "Admin clear live graph save state and metadata");
+      System.out.println(adminAction + "Admin clear live graph save state and metadata.");
       requestGraph.clearGraph();
       requestGraph.clearMetadata();
       return;
     }
 
-    System.out.println(error + "Invalid command - do not invoke admin commands");
+    System.out.println(error + "Invalid clear command.");
   }
 
   private static void showGraph(List<String> args) {
@@ -453,11 +458,6 @@ public class RequestTracker {
                  e.g. display 67
                  e.g. display search-a "CPU"
         
-        *******************   DEV USE ONLY:
-        clear all - wipes metadata, archive and live request graph.
-        clear archive - wipes archive.
-        clear graph - wipes live request graph and metadata.
-       
         """, info, Arrays.toString(Team.values()));
   }
 }
@@ -471,4 +471,10 @@ request "What fuel are we using?" propulsion
 request "Can I get a windows laptop?" sponsorship
 request "What cpu are we using?" avionics
 request "Is the teams doc up to date: https://imperiallondon.sharepoint.com/:p:/s/KarmanSpaceProgrammeWholeTeam-AE/ES3mbddTJZZOvtSLaef-e-UBzRSPoTGDZ_MoXlaaeJBXZg?e=sfqUF8?" sponsorship
+
+ *******************   DEV USE ONLY:
+        clear all - wipes metadata, archive and live request graph.
+        clear archive - wipes archive.
+        clear graph - wipes live request graph and metadata.
+
  */
