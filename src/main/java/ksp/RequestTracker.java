@@ -24,7 +24,7 @@ public class RequestTracker {
   static String email = "✉️   ";
   static String adminAction = "🔥   ";
   static String spacer = "     ";
-
+  static int matchPercentageThresholdBeforeAskingForConformation = 50;
 
   static RequestGraph requestGraph;
   static boolean run = true;
@@ -186,6 +186,20 @@ public class RequestTracker {
 
   private static boolean request(List<String> args) {
     String query = args.get(0);
+    List<ArchiveNode> similar = requestGraph.getArchive().stream().filter(
+        x -> x.archivedNode().matchPercentage(query)
+            >= matchPercentageThresholdBeforeAskingForConformation).toList();
+    if (!similar.isEmpty()){
+      System.out.println(info + "There seems to be similar questions that have been answered before:\n");
+      for (ArchiveNode alt : similar){
+        System.out.println(alt);
+      }
+      System.out.print("\n");
+
+      if (!askYN(input + "Do you still want to make the request?")){
+        return true;
+      }
+    }
 
     Team requestee;
     try {
@@ -212,7 +226,7 @@ public class RequestTracker {
       node = newRequest.build();
       requestGraph.addNewRequest(node);
     } catch (IllegalRequestException e) {
-      System.out.println(e.getMessage());
+      System.out.println(error + e.getMessage());
       return false;
     }
 
@@ -229,7 +243,7 @@ public class RequestTracker {
   }
 
   private static void clear(List<String> args) {
-    if (!askYN(adminAction + "You have triggered an admin command to wipe save data! Are you sure you want to continue?")){
+    if (!askYN(input + "You have triggered an admin command to wipe save data! Are you sure you want to continue?")){
       System.out.println(info + "No changes were made.");
       return;
     }
