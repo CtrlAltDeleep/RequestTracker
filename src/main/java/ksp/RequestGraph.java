@@ -72,7 +72,7 @@ public class RequestGraph {
     }
 
     return new ArrayList<>();
-  }
+  } //TODO:database
 
   public ArrayList<ArchiveNode> readArchiveData() {
     if (!ensureBucketsExist()){
