@@ -7,6 +7,8 @@ package ksp;
 import static ksp.utilities.SearchUtilities.stringMatchPercentage;
 
 import java.io.Serializable;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -17,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class RequestNode implements Serializable {
   private final Team requester;
+  private final Date creationDate;
   private Team requestee;
   private String details;
   private RequestNode source;
@@ -61,6 +64,8 @@ public class RequestNode implements Serializable {
     }
 
     id = IDGenerator.generateNewID();
+
+    creationDate = Calendar.getInstance().getTime();
   }
 
   protected boolean isRoot() {
@@ -249,10 +254,14 @@ public class RequestNode implements Serializable {
       return false;
     }
     RequestNode that = (RequestNode) o;
-    return Objects.equals(id, that.id) && Objects.equals(details, that.details);
+    return Objects.equals(id, that.id) && Objects.equals(creationDate, that.creationDate);
   }
 
   protected int getID() {
     return id;
+  }
+
+  protected Date getCreationDate() {
+    return creationDate;
   }
 }
