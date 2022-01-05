@@ -7,6 +7,7 @@ package ksp;
 import static ksp.utilities.SearchUtilities.stringMatchPercentage;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
@@ -224,7 +225,7 @@ public class RequestNode implements Serializable {
     }
 
     if (isRoot()) {
-      return tab + "Root Request #" + id + " from " + requester + " to " + requestee + ": "
+      return  tab + "Root Request #" + id + " from " + requester + " to " + requestee + ": "
           + details + detailsString;
     } else {
       return tab + "Branch Request #" + id + " from " + requester + " to " + requestee + ": "
