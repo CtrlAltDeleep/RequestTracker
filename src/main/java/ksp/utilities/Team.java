@@ -1,6 +1,6 @@
 package ksp.utilities;
 
-public enum Team { //TODO read enum db
+public enum Team { // TODO read enum db
   AVIONICS("Avionics", "ad2820@ic.ac.uk"),
   PROPULSION("Propulsion", "ad2820@ic.ac.uk"),
   STRUCTURES("Structures", "ad2820@ic.ac.uk"),

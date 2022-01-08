@@ -1,12 +1,9 @@
-/**
- * @author Avaneesh Deleep <a href="mailto:ad2820@ic.ac.uk">Email for bug reports</a>
- */
-
+/** @author Avaneesh Deleep <a href="mailto:ad2820@ic.ac.uk">Email for bug reports</a> */
 package ksp;
 
-import static ksp.utilities.SearchUtilities.stringMatchPercentage;
 import static java.util.stream.Collectors.toSet;
 import static ksp.RequestTracker.error;
+import static ksp.utilities.SearchUtilities.stringMatchPercentage;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,7 +24,6 @@ import ksp.utilities.RequestDirection;
 import ksp.utilities.Team;
 import org.jetbrains.annotations.NotNull;
 
-
 public class RequestGraph {
   private static ArrayList<RequestNode> rootRequests;
   private static ArrayList<ArchiveNode> archive;
@@ -35,8 +31,6 @@ public class RequestGraph {
   private static final String graphBucketPath = "save-data/request-graph-bucket.data";
   private static final String archiveBucketPath = "save-data/request-archive-bucket.data";
   private static final String metadataBucketPath = "save-data/metadata-bucket.data";
-
-
 
   public RequestGraph(ArrayList<RequestNode> rootRequests) {
     RequestGraph.rootRequests = rootRequests;
@@ -52,10 +46,9 @@ public class RequestGraph {
   }
 
   public ArrayList<RequestNode> readData() {
-    if (!ensureBucketsExist()){
+    if (!ensureBucketsExist()) {
       return new ArrayList<>();
     }
-
 
     try {
       FileInputStream graphFileStream = new FileInputStream(graphBucketPath);
@@ -72,10 +65,10 @@ public class RequestGraph {
     }
 
     return new ArrayList<>();
-  } //TODO:database
+  } // TODO:database
 
   public ArrayList<ArchiveNode> readArchiveData() {
-    if (!ensureBucketsExist()){
+    if (!ensureBucketsExist()) {
       return new ArrayList<>();
     }
 
@@ -97,7 +90,7 @@ public class RequestGraph {
   }
 
   public Metadata readMetadata() {
-    if (!ensureBucketsExist()){
+    if (!ensureBucketsExist()) {
       return new Metadata();
     }
 
@@ -118,12 +111,12 @@ public class RequestGraph {
   }
 
   public boolean saveData() {
-    if (!ensureBucketsExist()){
+    if (!ensureBucketsExist()) {
       return false;
     }
 
     try {
-      FileOutputStream graphFileStream = new FileOutputStream(graphBucketPath,false);
+      FileOutputStream graphFileStream = new FileOutputStream(graphBucketPath, false);
       ObjectOutputStream graphObjStream = new ObjectOutputStream(graphFileStream);
 
       graphObjStream.writeObject(rootRequests);
@@ -140,12 +133,12 @@ public class RequestGraph {
   }
 
   public boolean saveArchiveData() {
-    if (!ensureBucketsExist()){
+    if (!ensureBucketsExist()) {
       return false;
     }
 
     try {
-      FileOutputStream archiveFileStream = new FileOutputStream(archiveBucketPath,false);
+      FileOutputStream archiveFileStream = new FileOutputStream(archiveBucketPath, false);
       ObjectOutputStream archiveObjStream = new ObjectOutputStream(archiveFileStream);
 
       archiveObjStream.writeObject(archive);
@@ -161,12 +154,12 @@ public class RequestGraph {
   }
 
   public boolean saveMetadata() {
-    if (!ensureBucketsExist()){
+    if (!ensureBucketsExist()) {
       return false;
     }
 
     try {
-      FileOutputStream metadataFileStream = new FileOutputStream(metadataBucketPath,false);
+      FileOutputStream metadataFileStream = new FileOutputStream(metadataBucketPath, false);
       ObjectOutputStream metadataObjStream = new ObjectOutputStream(metadataFileStream);
 
       Metadata metadata = new Metadata(IDGenerator.saveState());
@@ -182,19 +175,19 @@ public class RequestGraph {
     return saveData();
   }
 
-  private boolean ensureBucketsExist(){
+  private boolean ensureBucketsExist() {
     try {
       File graphBucket = new File(graphBucketPath);
       File historyBucket = new File(archiveBucketPath);
       File metadataBucket = new File(metadataBucketPath);
 
-      if (graphBucket.createNewFile()){
+      if (graphBucket.createNewFile()) {
         System.out.println(error + "Application could not locate current graph state.");
       }
-      if (historyBucket.createNewFile()){
+      if (historyBucket.createNewFile()) {
         System.out.println(error + "Application could not locate request history.");
       }
-      if (metadataBucket.createNewFile()){
+      if (metadataBucket.createNewFile()) {
         System.out.println(error + "Application could not locate metadata.");
       }
     } catch (IOException e) {
@@ -217,90 +210,98 @@ public class RequestGraph {
     return saveData();
   }
 
-  public boolean resolveRequest(RequestNode request, String solution){
+  public boolean resolveRequest(RequestNode request, String solution) {
     request.removeRequest(this);
-    archive.add(new ArchiveNode(request,solution));
+    archive.add(new ArchiveNode(request, solution));
     return saveArchiveData();
   }
 
-  public RequestNode findRequest(int id){
-    for (RequestNode root : rootRequests){
-      RequestNode output = findRequestIDSearch(root,id);
-      if (output != null){
+  public RequestNode findRequest(int id) {
+    for (RequestNode root : rootRequests) {
+      RequestNode output = findRequestIDSearch(root, id);
+      if (output != null) {
         return output;
       }
     }
     return null;
   }
 
-  public ArchiveNode findArchivedRequest(int id){
-    for (ArchiveNode request : archive){
-      if (request.archivedNode().getID() == id){
+  public ArchiveNode findArchivedRequest(int id) {
+    for (ArchiveNode request : archive) {
+      if (request.archivedNode().getID() == id) {
         return request;
       }
     }
     return null;
   }
 
-  public ArrayList<RequestNode> findRequests(RequestDirection direction, Team team){
+  public ArrayList<RequestNode> findRequests(RequestDirection direction, Team team) {
     Set<RequestNode> output = new HashSet<>();
-    if (direction == RequestDirection.FROM){
+    if (direction == RequestDirection.FROM) {
       // find requests that this team made / are the requester for
       for (RequestNode root : rootRequests) {
-        output.addAll(findRequestsRequesterSearch(root,team,new HashSet<>()));
+        output.addAll(findRequestsRequesterSearch(root, team, new HashSet<>()));
       }
-    } else{
+    } else {
       // find requests that want info from this team / are the requestee in
       for (RequestNode root : rootRequests) {
-        output.addAll(findRequestsRequesteeSearch(root,team,new HashSet<>()));
+        output.addAll(findRequestsRequesteeSearch(root, team, new HashSet<>()));
       }
     }
     return new ArrayList<>(output);
   }
 
-  public ArrayList<ArchiveNode> findArchivedRequests(RequestDirection direction, Team team){
+  public ArrayList<ArchiveNode> findArchivedRequests(RequestDirection direction, Team team) {
     Set<ArchiveNode> output;
-    if (direction == RequestDirection.FROM){
+    if (direction == RequestDirection.FROM) {
       // find requests that this team made / are the requester for
-      output = archive.stream().filter(x -> x.archivedNode().getRequester()==team).collect(toSet());
-    } else{
+      output =
+          archive.stream().filter(x -> x.archivedNode().getRequester() == team).collect(toSet());
+    } else {
       // find requests that want info from this team / are the requestee in
-      output = archive.stream().filter(x -> x.archivedNode().getRequestee()==team).collect(toSet());
+      output =
+          archive.stream().filter(x -> x.archivedNode().getRequestee() == team).collect(toSet());
     }
     return new ArrayList<>(output);
   }
 
-  public ArrayList<RequestNode> findRequests(String keywords){
+  public ArrayList<RequestNode> findRequests(String keywords) {
     Set<RequestNode> output = new HashSet<>();
     for (RequestNode root : rootRequests) {
-      output.addAll(findKeyWordsSearch(root,keywords.toLowerCase(),new HashSet<>()));
+      output.addAll(findKeyWordsSearch(root, keywords.toLowerCase(), new HashSet<>()));
     }
-    Comparator<RequestNode> compareByMatch = Comparator.comparing(
-        (RequestNode o) -> o.matchPercentage(keywords));
+    Comparator<RequestNode> compareByMatch =
+        Comparator.comparing((RequestNode o) -> o.matchPercentage(keywords));
     ArrayList<RequestNode> listOut = new ArrayList<>(output);
     listOut.sort(compareByMatch);
     Collections.reverse(listOut);
     return listOut;
   }
 
-  public ArrayList<ArchiveNode> findInArchivedRequests(String keywords){
+  public ArrayList<ArchiveNode> findInArchivedRequests(String keywords) {
     Set<ArchiveNode> output;
-    output = archive.stream().filter(x -> x.archivedNode().matchPercentage(keywords)>0).collect(toSet());
+    output =
+        archive.stream()
+            .filter(x -> x.archivedNode().matchPercentage(keywords) > 0)
+            .collect(toSet());
 
     return sortArchiveNodes(keywords, output);
   }
 
-  public ArrayList<ArchiveNode> findInArchivedSolutions(String keywords){
+  public ArrayList<ArchiveNode> findInArchivedSolutions(String keywords) {
     Set<ArchiveNode> output;
-    output = archive.stream().filter(x -> stringMatchPercentage(x.solution(),keywords)>0).collect(toSet());
+    output =
+        archive.stream()
+            .filter(x -> stringMatchPercentage(x.solution(), keywords) > 0)
+            .collect(toSet());
 
     return sortArchiveNodes(keywords, output);
   }
 
   @NotNull
   private ArrayList<ArchiveNode> sortArchiveNodes(String keywords, Set<ArchiveNode> output) {
-    Comparator<ArchiveNode> compareByMatch = Comparator.comparing(
-        (ArchiveNode o) -> o.archivedNode().matchPercentage(keywords));
+    Comparator<ArchiveNode> compareByMatch =
+        Comparator.comparing((ArchiveNode o) -> o.archivedNode().matchPercentage(keywords));
 
     ArrayList<ArchiveNode> listOut = new ArrayList<>(output);
     listOut.sort(compareByMatch);
@@ -309,69 +310,63 @@ public class RequestGraph {
   }
 
   private RequestNode findRequestIDSearch(RequestNode requestToCheck, int id) {
-    if (requestToCheck.getID() == id){ // current request matches
+    if (requestToCheck.getID() == id) { // current request matches
       return requestToCheck;
-    }else if (requestToCheck.isTip()){ // no more branches to search here
+    } else if (requestToCheck.isTip()) { // no more branches to search here
       return null;
-    }else{
-      for (RequestNode branch:requestToCheck.getBranches()){ // search branches for id
-        if (findRequestIDSearch(branch,id) != null){
+    } else {
+      for (RequestNode branch : requestToCheck.getBranches()) { // search branches for id
+        if (findRequestIDSearch(branch, id) != null) {
           return branch;
         }
       }
-      return null; //id not found in branches
+      return null; // id not found in branches
     }
   }
 
   private Set<RequestNode> findRequestsRequesterSearch(
-      RequestNode requestToCheck,
-      Team team,
-      Set<RequestNode> currentMatches) {
+      RequestNode requestToCheck, Team team, Set<RequestNode> currentMatches) {
 
-    if (requestToCheck.getRequester() == team){ // current request matches
+    if (requestToCheck.getRequester() == team) { // current request matches
       currentMatches.add(requestToCheck);
     }
-    if (requestToCheck.isTip()){ // no more branches to search here
+    if (requestToCheck.isTip()) { // no more branches to search here
       return currentMatches;
-    }else{
-      for (RequestNode branch:requestToCheck.getBranches()){ // search branches
-        currentMatches.addAll(findRequestsRequesterSearch(branch,team,currentMatches));
+    } else {
+      for (RequestNode branch : requestToCheck.getBranches()) { // search branches
+        currentMatches.addAll(findRequestsRequesterSearch(branch, team, currentMatches));
       }
     }
     return currentMatches; // return currentMatches with upstream branch matches added
   }
 
   private Set<RequestNode> findRequestsRequesteeSearch(
-      RequestNode requestToCheck,
-      Team team,
-      Set<RequestNode> currentMatches) {
+      RequestNode requestToCheck, Team team, Set<RequestNode> currentMatches) {
 
-    if (requestToCheck.getRequestee() == team){ // current request matches
+    if (requestToCheck.getRequestee() == team) { // current request matches
       currentMatches.add(requestToCheck);
     }
-    if (requestToCheck.isTip()){ // no more branches to search here
+    if (requestToCheck.isTip()) { // no more branches to search here
       return currentMatches;
-    }else{
-      for (RequestNode branch:requestToCheck.getBranches()){ // search branches
-        currentMatches.addAll(findRequestsRequesteeSearch(branch,team,currentMatches));
+    } else {
+      for (RequestNode branch : requestToCheck.getBranches()) { // search branches
+        currentMatches.addAll(findRequestsRequesteeSearch(branch, team, currentMatches));
       }
     }
     return currentMatches; // return currentMatches with upstream branch matches added
   }
 
   private Set<RequestNode> findKeyWordsSearch(
-      RequestNode requestToCheck,
-      String keywords,
-      Set<RequestNode> currentMatches) {
+      RequestNode requestToCheck, String keywords, Set<RequestNode> currentMatches) {
 
-    if (requestToCheck.matchPercentage(keywords)>0){ // current request contains key phrase
+    if (requestToCheck.matchPercentage(keywords) > 0) { // current request contains key phrase
       currentMatches.add(requestToCheck);
     }
-    if (requestToCheck.isTip()){ // no more branches to search here
+    if (requestToCheck.isTip()) { // no more branches to search here
       return currentMatches;
-    }else{
-      for (RequestNode branch:requestToCheck.getBranches()){ // search branches
-        currentMatches.addAll(findKeyWordsSearch(branch,keywords,currentMatches));
+    } else {
+      for (RequestNode branch : requestToCheck.getBranches()) { // search branches
+        currentMatches.addAll(findKeyWordsSearch(branch, keywords, currentMatches));
       }
     }
     return currentMatches; // return currentMatches with upstream branch matches added
@@ -380,72 +375,74 @@ public class RequestGraph {
   public ArrayList<RequestNode> getImmediateProblems() {
     Set<RequestNode> output = new HashSet<>();
     for (RequestNode root : rootRequests) {
-      output.addAll(findAllTipsSearch(root,new HashSet<>()));
+      output.addAll(findAllTipsSearch(root, new HashSet<>()));
     }
     return new ArrayList<>(output);
   }
 
   private Set<RequestNode> findAllTipsSearch(
-      RequestNode requestToCheck,
-      Set<RequestNode> currentMatches) {
+      RequestNode requestToCheck, Set<RequestNode> currentMatches) {
 
-    if (requestToCheck.isTip()){ // no more branches to search here
+    if (requestToCheck.isTip()) { // no more branches to search here
       currentMatches.add(requestToCheck);
       return currentMatches;
-    }else{
-      for (RequestNode branch:requestToCheck.getBranches()){ // search branches
-        currentMatches.addAll(findAllTipsSearch(branch,currentMatches));
+    } else {
+      for (RequestNode branch : requestToCheck.getBranches()) { // search branches
+        currentMatches.addAll(findAllTipsSearch(branch, currentMatches));
       }
     }
     return currentMatches;
   }
 
-  public boolean graphIsEmpty(){
+  public boolean graphIsEmpty() {
     return rootRequests.isEmpty();
   }
+
   public boolean archiveIsEmpty() {
     return archive.isEmpty();
   }
 
-  public List<ArchiveNode> getArchive(){
+  public List<ArchiveNode> getArchive() {
     return archive;
   }
 
-  public void clearArchive(){
+  public void clearArchive() {
     archive = new ArrayList<>();
     saveArchiveData();
   }
 
-  public void clearGraph(){
+  public void clearGraph() {
     rootRequests = new ArrayList<>();
     saveData();
   }
 
-  public void clearMetadata(){
+  public void clearMetadata() {
     IDGenerator.init(0);
     saveMetadata();
   }
 
   @Override
   public String toString() {
-     StringBuilder output = new StringBuilder();
-     for (RequestNode root :rootRequests){
+    StringBuilder output = new StringBuilder();
+    for (RequestNode root : rootRequests) {
       output.append(root.toString()).append("\n\n");
-     }
-    try{
-     output.deleteCharAt(output.length() - 1);
-     } catch (Exception ignored){}
-     return output.toString();
+    }
+    try {
+      output.deleteCharAt(output.length() - 1);
+    } catch (Exception ignored) {
+    }
+    return output.toString();
   }
 
   public String archiveToString() {
     StringBuilder output = new StringBuilder();
-    for (ArchiveNode arch :archive){
+    for (ArchiveNode arch : archive) {
       output.append(arch.toString()).append("\n\n");
     }
-    try{
+    try {
       output.deleteCharAt(output.length() - 1);
-    } catch (Exception ignored){}
+    } catch (Exception ignored) {
+    }
     return output.toString();
   }
 }
