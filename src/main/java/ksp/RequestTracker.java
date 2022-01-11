@@ -36,7 +36,7 @@ public class RequestTracker {
    * @param args TODO: to be used to specify to launch in gui mode
    */
   public static void main(String[] args) {
-    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in)); //TODO : migrate to Console class
     System.out.println("\uD83D\uDE80   Welcome to the Karman Space programme Request Tracker");
     System.out.println("      To the stars -idk what the motto is but imagine that here\n");
     System.out.println("""
